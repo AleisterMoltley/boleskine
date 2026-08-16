@@ -64,21 +64,5 @@ export function createSky(scene, mats) {
   );
   scene.add(stars);
 
-  const penta = new THREE.Group();
-  for (let i = 0; i < 5; i++) {
-    const a = -Math.PI / 2 + (i * 4 * Math.PI) / 5;
-    const x = Math.cos(a) * 18;
-    const y = Math.sin(a) * 18;
-    const dot = new THREE.Mesh(
-      new THREE.SphereGeometry(0.35, 6, 5),
-      new THREE.MeshBasicMaterial({ color: 0xe8d6a0, fog: false })
-    );
-    dot.position.set(x, y, 0);
-    penta.add(dot);
-  }
-  penta.position.set(-40, 52, -80);
-  penta.lookAt(0, 20, 0);
-  scene.add(penta);
-
   return { moonLight, moon };
 }

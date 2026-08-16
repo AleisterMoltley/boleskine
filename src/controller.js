@@ -14,8 +14,8 @@ export function createPawn(x, z) {
     vx: 0,
     vy: 0,
     vz: 0,
-    yaw: 0.4,
-    facing: 0.4,
+    yaw: 0,
+    facing: 0,
     grounded: true,
     swimming: false,
     coyote: 0,
@@ -41,17 +41,14 @@ export function resetPawn(p, x, z, obstacles) {
   }
 }
 
-function camAxes(camYaw) {
-  const fx = -Math.sin(camYaw);
-  const fz = -Math.cos(camYaw);
-  const rx = Math.cos(camYaw);
-  const rz = -Math.sin(camYaw);
-  return { fx, fz, rx, rz };
-}
+export function stepPawn(p, dt, input, fx, fz, obstacles) {
+  const fl = Math.hypot(fx, fz) || 1;
+  fx /= fl;
+  fz /= fl;
+  const rx = fz;
+  const rz = -fx;
 
-export function stepPawn(p, dt, input, camYaw, obstacles) {
   const stick = input.wish();
-  const { fx, fz, rx, rz } = camAxes(camYaw);
   const wishX = rx * stick.x + fx * -stick.y;
   const wishZ = rz * stick.x + fz * -stick.y;
   const wishLen = Math.hypot(wishX, wishZ);
@@ -66,29 +63,17 @@ export function stepPawn(p, dt, input, camYaw, obstacles) {
   if (p.grounded) p.coyote = FEEL.coyote;
   else p.coyote = Math.max(0, p.coyote - dt);
 
-  if (p.swimming) {
-    p.vx = approach(p.vx, tx, FEEL.accel * 0.55 * dt);
-    p.vz = approach(p.vz, tz, FEEL.accel * 0.55 * dt);
-  } else if (p.grounded) {
-    const rate = wishLen > 0.08 ? FEEL.accel : FEEL.decel;
+  const rate = p.swimming ? FEEL.accel * 0.5 : p.grounded ? (wishLen > 0.08 ? FEEL.accel : FEEL.decel) : 0;
+  if (p.grounded || p.swimming) {
     p.vx = approach(p.vx, tx, rate * dt);
     p.vz = approach(p.vz, tz, rate * dt);
-    normalAt(p.x, p.z, _n);
-    if (_n.y >= FEEL.slopeMinY) {
-      const dot = p.vx * _n.x + p.vz * _n.z;
-      p.vx -= _n.x * dot;
-      p.vz -= _n.z * dot;
-    }
-  } else {
-    if (wishLen > 0.08) {
-      p.vx += (wishX / wishLen) * FEEL.airAccel * dt;
-      p.vz += (wishZ / wishLen) * FEEL.airAccel * dt;
-      const sp = Math.hypot(p.vx, p.vz);
-      const airCap = FEEL.run * 1.05;
-      if (sp > airCap) {
-        p.vx *= airCap / sp;
-        p.vz *= airCap / sp;
-      }
+  } else if (wishLen > 0.08) {
+    p.vx += (wishX / wishLen) * FEEL.airAccel * dt;
+    p.vz += (wishZ / wishLen) * FEEL.airAccel * dt;
+    const sp = Math.hypot(p.vx, p.vz);
+    if (sp > FEEL.run) {
+      p.vx *= FEEL.run / sp;
+      p.vz *= FEEL.run / sp;
     }
   }
 
@@ -98,10 +83,10 @@ export function stepPawn(p, dt, input, camYaw, obstacles) {
     p.coyote = 0;
     p.jumpBuf = 0;
   }
-  if (!input.state.jump && p.vy > 1.2) p.vy *= Math.pow(FEEL.jumpCut, dt * 10);
+  if (!input.state.jump && p.vy > 1.1) p.vy *= Math.pow(FEEL.jumpCut, dt * 10);
 
   p.vy -= FEEL.gravity * dt;
-  if (p.vy < -24) p.vy = -24;
+  if (p.vy < -22) p.vy = -22;
 
   const steps = 2;
   const hdt = dt / steps;
@@ -142,7 +127,7 @@ export function stepPawn(p, dt, input, camYaw, obstacles) {
       p.vy *= 0.88;
       if (input.state.jump) p.vy += 20 * hdt;
       p.grounded = false;
-    } else if (p.y <= surf + 0.08 && p.vy <= 2.4) {
+    } else if (p.y <= surf + 0.1 && p.vy <= 2.2) {
       if (_n.y >= FEEL.slopeMinY || plat > ground + 0.05) {
         p.y = surf;
         if (p.vy < 0) p.vy = 0;
@@ -150,8 +135,8 @@ export function stepPawn(p, dt, input, camYaw, obstacles) {
       } else {
         p.y = surf + 0.02;
         p.grounded = false;
-        p.vx += _n.x * 16 * hdt;
-        p.vz += _n.z * 16 * hdt;
+        p.vx += _n.x * 12 * hdt;
+        p.vz += _n.z * 12 * hdt;
       }
     } else {
       p.grounded = false;
@@ -163,7 +148,7 @@ export function stepPawn(p, dt, input, camYaw, obstacles) {
     }
 
     if (p.grounded && wishLen > 0.1) {
-      const stepH = heightAt(p.x + p.vx * 0.07, p.z + p.vz * 0.07);
+      const stepH = heightAt(p.x + fx * 0.45, p.z + fz * 0.45);
       const rise = stepH - surf;
       if (rise > 0.03 && rise <= FEEL.step) p.y = stepH;
     }
@@ -179,7 +164,7 @@ export function stepPawn(p, dt, input, camYaw, obstacles) {
 
   const sp = Math.hypot(p.vx, p.vz);
   p.speed = sp;
-  p.moving = sp > 0.4;
+  p.moving = sp > 0.35;
   if (wishLen > 0.1) p.facing = Math.atan2(-wishX, -wishZ);
   p.yaw = rotateToward(p.yaw, p.facing, FEEL.turnRate * dt);
 }

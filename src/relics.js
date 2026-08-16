@@ -5,7 +5,7 @@ import { relicMesh } from './world/props.js';
 export function createRelics(scene, mats) {
   const items = RELICS.map((r) => {
     const mesh = relicMesh(mats, r.id);
-    const y = heightAt(r.x, r.z) + 1.05;
+    const y = heightAt(r.x, r.z) + 1.12;
     mesh.position.set(r.x, y, r.z);
     scene.add(mesh);
     return { ...r, mesh, taken: false, placed: false, y };
@@ -55,14 +55,17 @@ export function createRelics(scene, mats) {
     place(it, ped) {
       it.placed = true;
       it.mesh.visible = true;
-      const y = heightAt(ped.x, ped.z) + 0.95;
+      const y = heightAt(ped.x, ped.z) + 0.72;
       it.mesh.position.set(ped.x, y, ped.z);
     },
     tick(t) {
       for (const it of items) {
         if (it.taken && !it.placed) continue;
-        it.mesh.position.y = it.placed ? heightAt(it.mesh.position.x, it.mesh.position.z) + 0.95 : it.y + Math.sin(t * 2 + it.x) * 0.12;
-        it.mesh.rotation.y = t * 0.8;
+        const base = it.placed
+          ? heightAt(it.mesh.position.x, it.mesh.position.z) + 0.72
+          : it.y;
+        it.mesh.position.y = base;
+        it.mesh.rotation.y = it.placed ? 0 : Math.sin(t * 0.35 + it.x) * 0.08;
       }
     },
     takenCount() {

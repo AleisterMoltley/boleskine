@@ -177,7 +177,12 @@ export function camHit(ox, oy, oz, dx, dy, dz, dist, obstacles) {
       const o = list[j];
       if (o.kind === 'plat' || o.ghost) continue;
       if (y < o.y0 - 0.4 || y > o.y1 + 1.2) continue;
-      const pad = o.kind === 'house' || o.kind === 'manor' || o.kind === 'kirk' ? 1.15 : 0.62;
+      const pad =
+        o.kind === 'house' || o.kind === 'manor' || o.kind === 'kirk'
+          ? 0.72
+          : o.kind === 'tree'
+            ? 0.28
+            : 0.42;
       if (o.r) {
         const d = Math.hypot(x - o.x, z - o.z);
         if (d < o.r + pad) hit = Math.min(hit, Math.max(FEEL.camMinDist, t - 0.45));

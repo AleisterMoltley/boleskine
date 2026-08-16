@@ -241,3 +241,125 @@ export function hangingPentagram(mats, invert = false) {
   g.add(cord);
   return g;
 }
+
+export function mosaicPavement(size, cells, mats, muted = false) {
+  const g = new THREE.Group();
+  const s = size / cells;
+  const light = muted ? mats.stoneLite : mats.bone;
+  const dark = muted ? mats.stoneDark : mats.robeDeep;
+  for (let i = 0; i < cells; i++) {
+    for (let j = 0; j < cells; j++) {
+      const tile = new THREE.Mesh(
+        new THREE.BoxGeometry(s * 0.97, 0.05, s * 0.97),
+        (i + j) % 2 ? light : dark
+      );
+      tile.position.set((i - cells * 0.5 + 0.5) * s, 0.03, (j - cells * 0.5 + 0.5) * s);
+      tile.receiveShadow = true;
+      g.add(tile);
+    }
+  }
+  return g;
+}
+
+export function tracingBoard(mats, scale = 1) {
+  const g = new THREE.Group();
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(2.4 * scale, 0.08, 1.7 * scale), mats.woodDeep);
+  slab.position.y = 0.04;
+  const circ = circleLine(0.48 * scale, mats.stoneLite, 0.035 * scale, 20);
+  circ.rotation.x = -Math.PI / 2;
+  circ.position.y = 0.09;
+  const sq = lineSigil(
+    [
+      [-0.38 * scale, -0.38 * scale],
+      [0.38 * scale, -0.38 * scale],
+      [0.38 * scale, 0.38 * scale],
+      [-0.38 * scale, 0.38 * scale],
+    ],
+    mats.stoneLite,
+    0.03 * scale
+  );
+  sq.rotation.x = -Math.PI / 2;
+  sq.position.y = 0.09;
+  const tri = lineSigil(
+    [
+      [0, 0.34 * scale],
+      [0.3 * scale, -0.2 * scale],
+      [-0.3 * scale, -0.2 * scale],
+    ],
+    mats.goldDeep,
+    0.028 * scale
+  );
+  tri.rotation.x = -Math.PI / 2;
+  tri.position.y = 0.1;
+  g.add(slab, circ, sq, tri);
+  return g;
+}
+
+export function compassSquare(mats, s = 1) {
+  const g = new THREE.Group();
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(0.42 * s, 0.04 * s, 0.04 * s), mats.iron);
+  beam.rotation.z = 0.55;
+  const beam2 = beam.clone();
+  beam2.rotation.z = -0.55;
+  const bow = new THREE.Mesh(new THREE.TorusGeometry(0.16 * s, 0.018 * s, 5, 10, Math.PI), mats.iron);
+  bow.rotation.z = Math.PI;
+  bow.position.y = -0.08 * s;
+  g.add(beam, beam2, bow);
+  return g;
+}
+
+export function ashlars(mats) {
+  const g = new THREE.Group();
+  const rough = new THREE.Mesh(new THREE.DodecahedronGeometry(0.38, 0), mats.stone);
+  rough.position.set(-0.7, 0.32, 0);
+  rough.scale.set(1.1, 0.85, 1);
+  const smooth = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.62, 0.62), mats.stoneLite);
+  smooth.position.set(0.7, 0.31, 0);
+  g.add(rough, smooth);
+  return g;
+}
+
+export function roseWindow(mats) {
+  const g = new THREE.Group();
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.72, 0.06, 6, 16), mats.stoneLite);
+  g.add(rim);
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI * 2;
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(1.28, 0.045, 0.04), mats.stone);
+    bar.rotation.z = a;
+    g.add(bar);
+  }
+  const hub = new THREE.Mesh(new THREE.CircleGeometry(0.14, 8), mats.ember);
+  hub.position.z = 0.02;
+  g.add(hub);
+  return g;
+}
+
+export function lectern(mats) {
+  const g = new THREE.Group();
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.1, 1.05, 6), mats.wood);
+  post.position.y = 0.52;
+  const top = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.06, 0.4), mats.woodDeep);
+  top.position.set(0, 1.08, 0.04);
+  top.rotation.x = -0.25;
+  g.add(post, top);
+  return g;
+}
+
+export function hoodedAdept(mats) {
+  const g = new THREE.Group();
+  const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.42, 1.35, 8), mats.robe);
+  robe.position.y = 0.68;
+  const hood = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), mats.robeDeep);
+  hood.position.y = 1.48;
+  hood.scale.set(1, 1.15, 1.05);
+  const voidFace = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 5), mats.eyeHole);
+  voidFace.position.set(0, 1.46, 0.14);
+  const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 5), mats.ember);
+  lamp.position.set(0.22, 0.85, 0.18);
+  g.add(robe, hood, voidFace, lamp);
+  g.traverse((o) => {
+    if (o.isMesh) o.castShadow = true;
+  });
+  return g;
+}

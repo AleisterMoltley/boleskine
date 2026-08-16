@@ -8,6 +8,7 @@ function bone(mat, r, len, seg = 6) {
 
 export function makeCrowley(mats) {
   const root = new THREE.Group();
+  root.scale.setScalar(0.88);
   const tilt = new THREE.Group();
   root.add(tilt);
 

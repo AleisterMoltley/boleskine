@@ -44,7 +44,8 @@ export function boot(canvas) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, 0.12, 420);
+  const camera = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.18, 420);
+  const _camFwd = new THREE.Vector3();
   camera.position.set(-20, 22, 48);
 
   const mats = createMaterials();
@@ -95,7 +96,7 @@ export function boot(canvas) {
     won: false,
     metRose: false,
     lastShrine: { x: POI.spawn.x, z: POI.spawn.z },
-    quest: 'Sprich mit der Scharlachroten Frau.',
+    quest: 'Sprich mit der Frau in Rot.',
     acc: 0,
     time: 0,
     hurtFlash: 0,
@@ -106,11 +107,11 @@ export function boot(canvas) {
     if (state.won) return 'Die Operation ist vollendet.';
     const taken = relics.takenCount();
     const placed = relics.placedCount();
-    if (taken === 0 && !state.metRose) return 'Sprich mit der Scharlachroten Frau.';
+    if (taken === 0 && !state.metRose) return 'Sprich mit der Frau in Rot.';
     if (taken === 0) return 'Finde die sieben Werkzeuge der Operation.';
-    if (placed < 7 && taken < 7) return `Werkzeuge ${taken}/7 — bring sie zum Hexagramm.`;
-    if (placed < 7) return `Setze die Reliquien auf die Sockel (${placed}/7).`;
-    return 'Halt R im Hexagramm — vollende die Operation.';
+    if (placed < 7 && taken < 7) return `Dinge ${taken}/7 — bring sie auf den Hof.`;
+    if (placed < 7) return `Setze sie auf die Sockel (${placed}/7).`;
+    return 'Halt R auf dem Pflaster.';
   }
 
   function talkTo(npc) {
@@ -280,11 +281,16 @@ export function boot(canvas) {
     const look = input.consumeLook();
     if (!state.talking && !state.map && !state.journal) cam.applyLook(look.x, look.y);
 
+    camera.getWorldDirection(_camFwd);
+    _camFwd.y = 0;
+    if (_camFwd.lengthSq() < 1e-6) _camFwd.set(-Math.sin(cam.orbit.yaw), 0, -Math.cos(cam.orbit.yaw));
+    else _camFwd.normalize();
+
     state.acc += dt;
     if (state.acc > 0.12) state.acc = 0.12;
     while (state.acc >= STEP) {
       if (!state.talking && !state.map && !state.journal && !state.won) {
-        stepPawn(pawn, STEP, input, cam.orbit.yaw, obstacles);
+        stepPawn(pawn, STEP, input, _camFwd.x, _camFwd.z, obstacles);
       } else {
         pawn.vx *= 0.8;
         pawn.vz *= 0.8;
@@ -292,7 +298,7 @@ export function boot(canvas) {
       state.acc -= STEP;
     }
 
-    cam.tick(pawn, dt, obstacles);
+    cam.tick(pawn, dt, obstacles, pawn.moving);
     crowley.tick(dt, pawn, state.castCd > 0.2);
     npcs.tick(state.time);
     relics.tick(state.time);

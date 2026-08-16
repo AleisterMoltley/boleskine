@@ -3,19 +3,14 @@ import { PAL, POI, WORLD } from '../config.js';
 import { hash2 } from '../math.js';
 import { heightAt, isWater, pathWidth, scatter } from '../height.js';
 import {
-  ankh,
-  baphomet,
-  candle,
-  eyeInTriangle,
-  glyphStone,
-  hangingPentagram,
+  ashlars,
+  compassSquare,
+  hoodedAdept,
   jachinBoaz,
-  layFlat,
-  pentacle,
-  roseCenter,
-  stand,
-  steleRevealing,
-  unicursal,
+  lectern,
+  mosaicPavement,
+  roseWindow,
+  tracingBoard,
 } from './symbols.js';
 
 function shadowize(root) {
@@ -108,10 +103,9 @@ export function grave(mats, rng) {
   stone.rotation.z = (rng - 0.5) * 0.25;
   stone.rotation.y = (rng - 0.5) * 0.2;
   g.add(stone);
-  if (rng > 0.45) {
-    const mark = pentacle(0.12, mats.sigilBlood, true, 0.02);
-    mark.position.set(0, 0.48, 0.07);
-    mark.rotation.x = -0.1;
+  if (rng > 0.72) {
+    const mark = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.012, 5, 10), mats.stoneLite);
+    mark.position.set(0, 0.5, 0.07);
     g.add(mark);
   }
   return shadowize(g);
@@ -167,9 +161,9 @@ export function manor(mats) {
   door.position.set(0, 1.3, 5.12);
   const arch = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.12, 6, 10, Math.PI), mats.stoneLite);
   arch.position.set(0, 2.55, 5.12);
-  const doorHex = unicursal(0.38, mats.sigilGold, 0.04);
-  doorHex.position.set(0, 3.55, 5.18);
-  g.add(main, wing, wingR, roof, gable, tower, cap, door, arch, doorHex);
+  const tool = compassSquare(mats, 0.85);
+  tool.position.set(0, 3.42, 5.22);
+  g.add(main, wing, wingR, roof, gable, tower, cap, door, arch, tool);
   for (let i = -2; i <= 2; i++) {
     if (i === 0) continue;
     const win = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.1, 0.08), mats.ember);
@@ -200,16 +194,13 @@ export function kirk(mats) {
   needle.position.set(-2.4, 11.2, -3.4);
   const door = new THREE.Mesh(new THREE.BoxGeometry(1.3, 2.2, 0.15), mats.iron);
   door.position.set(0, 1.1, 5.55);
-  const roseWin = pentacle(0.85, mats.sigilBlood, true, 0.07);
-  roseWin.position.set(0, 3.6, 5.58);
+  const roseWin = roseWindow(mats);
+  roseWin.position.set(0, 3.65, 5.58);
   const altar = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.7, 0.7), mats.stone);
   altar.position.set(0, 0.35, -3.4);
-  const altarStar = pentacle(0.28, mats.sigilGold, true, 0.035);
-  altarStar.rotation.x = -Math.PI / 2;
-  altarStar.position.set(0, 0.72, -3.4);
-  const glow = new THREE.PointLight(0x80c8c0, 1.4, 14, 2);
+  const glow = new THREE.PointLight(0x80c8c0, 1.1, 12, 2);
   glow.position.set(0, 2.5, 2);
-  g.add(nave, roof, spire, needle, door, roseWin, altar, altarStar, glow);
+  g.add(nave, roof, spire, needle, door, roseWin, altar, glow);
   return shadowize(g);
 }
 
@@ -228,47 +219,42 @@ export function abbey(mats) {
       g.add(broken);
     }
   }
-  const ring = new THREE.Mesh(new THREE.TorusGeometry(5.4, 0.18, 6, 24), mats.goldDeep);
-  ring.rotation.x = Math.PI / 2;
-  ring.position.y = 0.12;
-  const floorHex = layFlat(unicursal(3.4, mats.sigilGold, 0.1), 0.14);
-  const floorPent = layFlat(pentacle(1.55, mats.sigilTeal, false, 0.07), 0.16);
+  const floor = mosaicPavement(11, 8, mats);
+  floor.position.y = 0.02;
+  const board = tracingBoard(mats, 1.05);
+  board.position.y = 0.06;
   const pillars = jachinBoaz(mats);
   pillars.position.set(0, 0, 8.4);
-  const stele = steleRevealing(mats);
-  stele.position.set(0, 0, 3.1);
-  const a1 = ankh(mats, 1.15);
-  a1.position.set(-3.4, 0.2, 0);
-  const a2 = ankh(mats, 1.15);
-  a2.position.set(3.4, 0.2, 0);
-  const eye = stand(eyeInTriangle(mats, 1.3), 1.15);
-  eye.position.set(0, 0, 4.2);
-  g.add(ring, floorHex, floorPent, pillars, stele, a1, a2, eye);
+  const pair = ashlars(mats);
+  pair.position.set(-4.2, 0, 3.4);
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.8, 0.16), mats.sand);
+  slab.position.set(0, 0.9, 3.0);
+  const sun = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 6), mats.goldDeep);
+  sun.position.set(0, 1.55, 3.1);
+  g.add(floor, board, pillars, pair, slab, sun);
   return shadowize(g);
 }
 
 export function plaza(mats) {
   const g = new THREE.Group();
-  const dais = new THREE.Mesh(new THREE.CylinderGeometry(8.5, 9.2, 0.35, 12), mats.stoneDark);
-  dais.position.y = 0.1;
-  const ring = layFlat(pentacle(6.35, mats.sigilGold, false, 0.14), 0.32);
-  const hex = layFlat(unicursal(3.9, mats.sigilGold, 0.15), 0.34);
-  const inner = layFlat(pentacle(1.4, mats.sigilTeal, false, 0.08), 0.36);
-  const rose = layFlat(roseCenter(mats), 0.38);
-  g.add(dais, ring, hex, inner, rose);
+  const dais = new THREE.Mesh(new THREE.CylinderGeometry(8.8, 9.4, 0.22, 12), mats.stone);
+  dais.position.y = 0.08;
+  const mosaic = mosaicPavement(12.6, 10, mats);
+  mosaic.position.y = 0.12;
+  const board = tracingBoard(mats, 1.15);
+  board.position.y = 0.16;
+  const pillars = jachinBoaz(mats);
+  pillars.scale.setScalar(0.85);
+  pillars.position.set(0, 0, 7.6);
+  g.add(dais, mosaic, board, pillars);
   for (let i = 0; i < 7; i++) {
     const a = (i / 7) * Math.PI * 2 - Math.PI / 2;
-    const ped = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.48, 0.7, 6), mats.stoneLite);
-    ped.position.set(Math.cos(a) * 5.6, 0.5, Math.sin(a) * 5.6);
-    const mark = unicursal(0.18, mats.sigilGold, 0.025);
-    mark.rotation.x = -Math.PI / 2;
-    mark.position.set(Math.cos(a) * 5.6, 0.87, Math.sin(a) * 5.6);
-    const c = candle(mats, 0.38);
-    c.position.set(Math.cos(a) * 7.15, 0.28, Math.sin(a) * 7.15);
-    g.add(ped, mark, c);
+    const ped = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.42, 0.55, 6), mats.stoneLite);
+    ped.position.set(Math.cos(a) * 5.6, 0.4, Math.sin(a) * 5.6);
+    g.add(ped);
   }
-  const light = new THREE.PointLight(0xc9a24a, 1.8, 20, 2);
-  light.position.set(0, 2.4, 0);
+  const light = new THREE.PointLight(0xc4b48a, 1.15, 16, 2);
+  light.position.set(0, 2.6, 0);
   g.add(light);
   return shadowize(g);
 }
@@ -307,18 +293,16 @@ export function relicMesh(mats, id) {
   } else if (id === 'wand') {
     g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.035, 0.7, 6), mats.wood));
   } else if (id === 'pantacle') {
-    const disk = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.04, 12), mats.gold);
-    const star = pentacle(0.18, mats.sigilGold, false, 0.025);
-    star.rotation.x = -Math.PI / 2;
-    star.position.y = 0.04;
-    g.add(disk, star);
+    const disk = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.035, 12), mats.goldDeep);
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.012, 5, 12), mats.stoneLite);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = 0.025;
+    g.add(disk, ring);
   } else if (id === 'stele') {
-    const slab = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.5, 0.08), mats.sand);
-    const wing = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 5), mats.glowGold);
-    wing.position.set(0, 0.18, 0.05);
-    g.add(slab, wing);
+    const slab = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.46, 0.07), mats.sand);
+    g.add(slab);
   } else {
-    const vial = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.22, 8), mats.glowGold);
+    const vial = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.065, 0.2, 8), mats.goldDeep);
     g.add(vial);
   }
   return shadowize(g);
@@ -527,65 +511,35 @@ export function populate(scene, mats, obstacles) {
     obstacles.cyl(r.x, r.z, y, y + 0.7, 0.4 + r.r * 0.35, 'rock');
   }
 
-  const court = layFlat(pentacle(3.2, mats.sigilGold, false, 0.08), 0.08);
-  plant(court, POI.spawn.x, POI.spawn.z + 1.2);
-  for (let i = 0; i < 5; i++) {
-    const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
-    plant(candle(mats, 0.4), POI.spawn.x + Math.cos(a) * 3.15, POI.spawn.z + 1.2 + Math.sin(a) * 3.15, 0, 0.02);
-  }
+  const yard = mosaicPavement(5.4, 6, mats, true);
+  plant(yard, POI.spawn.x, POI.spawn.z + 1.4);
 
-  const beast = baphomet(mats);
-  plant(beast, POI.wood.x + 4, POI.wood.z - 6, 0.6);
+  const adept = hoodedAdept(mats);
+  plant(adept, POI.wood.x + 4, POI.wood.z - 6, 0.6);
   const by = heightAt(POI.wood.x + 4, POI.wood.z - 6);
-  obstacles.cyl(POI.wood.x + 4, POI.wood.z - 6, by, by + 3.2, 0.6, 'idol');
-  plant(layFlat(unicursal(2.6, mats.sigilBlood, 0.12), 0.08), POI.wood.x + 4, POI.wood.z - 6);
+  obstacles.cyl(POI.wood.x + 4, POI.wood.z - 6, by, by + 2.2, 0.45, 'idol');
 
-  const stones = [
-    [POI.plaza.x - 11, POI.plaza.z + 3, '93', 0.4],
-    [POI.plaza.x + 11, POI.plaza.z - 2, 'THELEMA', -0.5],
-    [POI.manor.x + 8, POI.manor.z - 8, 'AL', 0.2],
-    [POI.abbey.x - 11, POI.abbey.z + 2, '93', 1.1],
-    [POI.kirk.x + 10, POI.kirk.z + 4, 'TO\nMEGA', -0.8],
-    [POI.village.x - 8, POI.village.z + 2, '93', 0.3],
+  const desks = [
+    [-54.5, 50.5],
+    [90.0, 24.8],
+    [-20.0, 102.5],
+    [-104.0, -18.0],
+    [12.4, -86.8],
+    [-80.0, -98.5],
+    [76.6, 47.8],
   ];
-  for (const [x, z, text, rot] of stones) {
-    if (isWater(x, z)) continue;
-    const face = Math.atan2(POI.plaza.x - x, POI.plaza.z - z);
-    plant(glyphStone(text, mats), x, z, face);
+  for (const [x, z] of desks) {
+    plant(lectern(mats), x, z);
     const y = heightAt(x, z);
-    obstacles.box(x, z, y, y + 1.3, 0.48, 0.16, rot, 'stone');
-  }
-
-  const wellStar = layFlat(pentacle(1.05, mats.sigilGold, false, 0.05), 0.95);
-  plant(wellStar, POI.village.x, POI.village.z);
-
-  const pierStar = layFlat(unicursal(1.1, mats.sigilTeal, 0.05), 0.12);
-  plant(pierStar, POI.pier.x, 102.2, 0, WORLD.waterY + 0.62);
-
-  const hang = [
-    [POI.wood.x - 6, POI.wood.z + 8],
-    [POI.wood.x + 10, POI.wood.z + 2],
-    [POI.willow.x - 3, POI.willow.z + 2],
-    [POI.kirk.x - 8, POI.kirk.z + 3],
-  ];
-  for (const [x, z] of hang) {
-    const h = hangingPentagram(mats, hash2(Math.floor(x), Math.floor(z)) > 0.5);
-    plant(h, x, z, 0, 2.4);
-  }
-
-  const relicMarks = [
-    [-54.5, 50.5, false],
-    [90.0, 24.8, true],
-    [-104.0, -18.0, false],
-    [76.6, 47.8, true],
-  ];
-  for (const [x, z, inv] of relicMarks) {
-    plant(layFlat(pentacle(0.85, inv ? mats.sigilBlood : mats.sigilGold, inv, 0.05), 0.07), x, z);
+    obstacles.cyl(x, z, y, y + 1.1, 0.18, 'desk');
   }
 
   const ay2 = heightAt(POI.abbey.x, POI.abbey.z);
   obstacles.cyl(POI.abbey.x - 1.6, POI.abbey.z + 8.4, ay2, ay2 + 4.6, 0.38, 'col');
   obstacles.cyl(POI.abbey.x + 1.6, POI.abbey.z + 8.4, ay2, ay2 + 4.6, 0.38, 'col');
+  const py = heightAt(POI.plaza.x, POI.plaza.z);
+  obstacles.cyl(POI.plaza.x - 1.35, POI.plaza.z + 7.6, py, py + 4.2, 0.32, 'col');
+  obstacles.cyl(POI.plaza.x + 1.35, POI.plaza.z + 7.6, py, py + 4.2, 0.32, 'col');
 
   return { manorG, ness, lights };
 }

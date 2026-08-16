@@ -46,15 +46,14 @@ export function createNpcs(scene, mats) {
   rose.add(hair);
   add(
     'rose',
-    'Die Scharlachrote Frau',
+    'Die Frau in Rot',
     POI.spawn.x + 5.2,
     POI.spawn.z + 1.8,
     rose,
     [
-      'Aleister. Die Abramelin-Operation ist zerrissen — Liber AL, Athame, Kelch, Stab, Pantakel, Stele, Öl.',
-      'Das unicursale Hexagramm wartet auf dem Platz. Sieben Sockel, sieben Planeten.',
-      'Do what thou wilt shall be the whole of the Law. 93.',
-      'Aiwass sitzt am Kreis. Hör ihm zu, dann hol das Buch aus dem Haus.',
+      'Die Arbeit im Haus ist unvollständig. Sieben Dinge fehlen. Du weißt welche.',
+      'Unten auf dem Pflaster wartet der Kreis. Nicht eilen. Erst das Pult im Arbeitszimmer.',
+      'Was du willst, ist das Gesetz — aber zuerst: sieh dich um, nicht hinunter.',
     ]
   );
 
@@ -67,9 +66,8 @@ export function createNpcs(scene, mats) {
     POI.kirk.z - 7,
     warden,
     [
-      'Das umgekehrte Pentagramm brennt im Fenster. Euer Athame liegt auf dem Altar.',
-      'Die Schatten hassen das Pentakel. Ein Stern, und sie werden Ruß.',
-      'Unter der Trauerweide das Abramelin-Öl. Zimt, Myrrhe, Galangal.',
+      'Das Fenster ist älter als die Gemeinde. Das Messer liegt noch am Altar.',
+      'Die Gräber sind unruhig. Unter der Weide tropft etwas in eine Phiole.',
     ]
   );
 
@@ -87,14 +85,13 @@ export function createNpcs(scene, mats) {
   });
   add(
     'jakob',
-    'Kürbis-Jakob',
+    'Jakob',
     POI.village.x + 6,
     POI.village.z - 4,
     jakob,
     [
-      'Willkommen. Hier hängt man Pentagramme ins Kürbisfleisch und nennt es Ernte.',
-      'Das Pentakel — Stern im Kreis — liegt im Brunnen. Fünf Spitzen, ein Wille.',
-      'In der Abtei stehen Jachin und Boaz noch. Die Stele der Enthüllung auch.',
+      'Im Brunnen liegt eine Scheibe. Kupfer, alt. Niemand holt sie hoch.',
+      'Westlich die Ruine. Zwei Säulen noch. Schwarz und hell. Wie immer.',
     ]
   );
 
@@ -109,14 +106,13 @@ export function createNpcs(scene, mats) {
   raven.add(bodyR, headR, beak);
   add(
     'aiwass',
-    'Rabe Aiwass',
+    'Der Rabe',
     POI.plaza.x + 3.5,
     POI.plaza.z - 6,
     raven,
     [
-      '93. Ich bin Aiwass, oder ein Rabe, der den Namen trägt. Gleichgültig.',
-      'Das unicursale Hexagramm ist dein Siegel. Nicht der sechszackige Davidstern.',
-      'Love is the law, love under will. Setz die sieben, dann hält der Mond.',
+      'Krch. Ich sitze auf dem Pflaster. Das genügt als Hinweis.',
+      'Sieben Sockel. Wenn sie voll sind, hält der Kreis. Mehr sag ich nicht.',
     ]
   );
   raven.scale.setScalar(1.6);
@@ -124,14 +120,13 @@ export function createNpcs(scene, mats) {
   const ghost = body(mats, mats.ghost, mats.ghost, 1.05);
   add(
     'ghost',
-    'Ein Rest der Golden Dawn',
+    'Ein früherer Bruder',
     POI.abbey.x + 8,
     POI.abbey.z + 6,
     ghost,
     [
-      'Golden Dawn. Jachin weiß, Boaz schwarz. Du hast uns überlebt. Unhöflich.',
-      'Die Stele des Ankh-ef-en-Khonsu steht im Hof. Wille, kein Fürchten.',
-      'Mathers sendet Grüße. Nimm die Stele. 93 93/93.',
+      'Wir haben die Säulen gesetzt. Du hast uns überlebt. Unhöflich.',
+      'Die Tafel im Hof. Sandstein. Nimm, was darauf wartet — ohne Aufhebens.',
     ]
   );
 
