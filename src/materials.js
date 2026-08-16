@@ -58,6 +58,24 @@ export function createMaterials() {
       g.ellipse(x, y, 8 + (i % 5) * 4, 6 + (i % 3) * 3, i, 0, Math.PI * 2);
       g.fill();
     }
+    g.globalAlpha = 0.55;
+    g.strokeStyle = '#6a4a28';
+    g.lineWidth = 5;
+    const cx = w * 0.5;
+    const cy = h * 0.48;
+    const raw = [
+      [200, 0], [250, 175], [400, 175], [275, 275], [325, 450],
+      [200, 350], [75, 450], [125, 275], [0, 175], [150, 175],
+    ];
+    g.beginPath();
+    raw.forEach(([x, y], i) => {
+      const px = cx + (x - 200) * 0.38;
+      const py = cy + (y - 225) * 0.38;
+      if (i === 0) g.moveTo(px, py);
+      else g.lineTo(px, py);
+    });
+    g.closePath();
+    g.stroke();
     g.globalAlpha = 1;
   });
   moonMap.wrapS = moonMap.wrapT = THREE.ClampToEdgeWrapping;
@@ -129,5 +147,8 @@ export function createMaterials() {
     glowGold: new THREE.MeshBasicMaterial({ color: 0xffe08a }),
     nemesGold: toon(0xc9a24a),
     nemesStripe: toon(0x1a1410),
+    sigilGold: new THREE.MeshBasicMaterial({ color: 0xe8c86a }),
+    sigilBlood: new THREE.MeshBasicMaterial({ color: 0x9a2430 }),
+    sigilTeal: new THREE.MeshBasicMaterial({ color: 0x7ec8c0 }),
   };
 }

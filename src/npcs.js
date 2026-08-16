@@ -51,10 +51,10 @@ export function createNpcs(scene, mats) {
     POI.spawn.z + 1.8,
     rose,
     [
-      'Aleister. Die Operation ist zerrissen — sieben Werkzeuge, sieben Orte.',
-      'Das Buch liegt noch im Haus. Der Rest… die Insel hat ihn verschluckt.',
-      'Bring sie zum Hexagramm. Dann sprechen wir mit dem, was antwortet.',
-      'Do what thou wilt. Aber zuerst: lauf, und stoß dich nicht an den Hügeln.',
+      'Aleister. Die Abramelin-Operation ist zerrissen — Liber AL, Athame, Kelch, Stab, Pantakel, Stele, Öl.',
+      'Das unicursale Hexagramm wartet auf dem Platz. Sieben Sockel, sieben Planeten.',
+      'Do what thou wilt shall be the whole of the Law. 93.',
+      'Aiwass sitzt am Kreis. Hör ihm zu, dann hol das Buch aus dem Haus.',
     ]
   );
 
@@ -67,9 +67,9 @@ export function createNpcs(scene, mats) {
     POI.kirk.z - 7,
     warden,
     [
-      'Die Gräber sind unruhig, Magus. Euer Athame lehnt am Altar.',
-      'Wenn die Schatten kommen: ein Stern, und sie zerfallen zu Ruß.',
-      'Unter der Trauerweide tropft noch Öl. Riecht nach Zimt und Schwefel.',
+      'Das umgekehrte Pentagramm brennt im Fenster. Euer Athame liegt auf dem Altar.',
+      'Die Schatten hassen das Pentakel. Ein Stern, und sie werden Ruß.',
+      'Unter der Trauerweide das Abramelin-Öl. Zimt, Myrrhe, Galangal.',
     ]
   );
 
@@ -92,9 +92,9 @@ export function createNpcs(scene, mats) {
     POI.village.z - 4,
     jakob,
     [
-      'Willkommen im Dorf, wo die Laternen länger leben als die Leute.',
-      'Das Pantakel liegt im Brunnen. Ich hab reingeguckt. Es hat zurückgeguckt.',
-      'Die Abtei im Südwesten summt nachts. Schöne Ruinen. Schlechte Nachbarn.',
+      'Willkommen. Hier hängt man Pentagramme ins Kürbisfleisch und nennt es Ernte.',
+      'Das Pentakel — Stern im Kreis — liegt im Brunnen. Fünf Spitzen, ein Wille.',
+      'In der Abtei stehen Jachin und Boaz noch. Die Stele der Enthüllung auch.',
     ]
   );
 
@@ -114,9 +114,9 @@ export function createNpcs(scene, mats) {
     POI.plaza.z - 6,
     raven,
     [
-      'Krch. Ich bin nur ein Vogel. Ignorier die Stimme hinter der Stimme.',
-      'Sieben Sockel. Sieben Namen. Einer zu wenig, und der Mond bleibt zu.',
-      'Der Steg. Der Wald. Die Weide. Du weißt das schon. Du hast es aufgeschrieben.',
+      '93. Ich bin Aiwass, oder ein Rabe, der den Namen trägt. Gleichgültig.',
+      'Das unicursale Hexagramm ist dein Siegel. Nicht der sechszackige Davidstern.',
+      'Love is the law, love under will. Setz die sieben, dann hält der Mond.',
     ]
   );
   raven.scale.setScalar(1.6);
@@ -129,9 +129,9 @@ export function createNpcs(scene, mats) {
     POI.abbey.z + 6,
     ghost,
     [
-      'Wir haben dich hinausgeworfen. Du hast uns überlebt. Unhöflich.',
-      'Die Stele steht im Hof. Berühr sie nicht mit Angst — nur mit Willen.',
-      'Mathers sendet Grüße. Sie sind vergiftet. Nimm sie trotzdem.',
+      'Golden Dawn. Jachin weiß, Boaz schwarz. Du hast uns überlebt. Unhöflich.',
+      'Die Stele des Ankh-ef-en-Khonsu steht im Hof. Wille, kein Fürchten.',
+      'Mathers sendet Grüße. Nimm die Stele. 93 93/93.',
     ]
   );
 

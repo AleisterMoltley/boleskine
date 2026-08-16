@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { POI } from './config.js';
 import { hash2 } from './math.js';
 import { heightAt, isWater } from './height.js';
+import { pentacle } from './world/symbols.js';
 
 export function createCombat(scene, mats) {
   const shadows = [];
@@ -51,10 +52,10 @@ export function createCombat(scene, mats) {
   for (const s of spots) spawnShadow(s.x, s.z);
 
   function fire(from, yaw) {
-    const mesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.16, 0), mats.willHot);
-    const star = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.03, 4, 5), mats.will);
-    star.rotation.x = Math.PI / 2;
-    mesh.add(star);
+    const mesh = new THREE.Group();
+    const core = new THREE.Mesh(new THREE.OctahedronGeometry(0.1, 0), mats.willHot);
+    const star = pentacle(0.22, mats.will, false, 0.035);
+    mesh.add(core, star);
     const dirx = -Math.sin(yaw);
     const dirz = -Math.cos(yaw);
     mesh.position.set(from.x + dirx * 0.8, from.y + 1.35, from.z + dirz * 0.8);
