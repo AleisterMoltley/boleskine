@@ -1,7 +1,11 @@
+import { FEEL } from './config.js';
+import { deadzone } from './math.js';
+
 export function createInput(canvas) {
   const keys = Object.create(null);
   const look = { dx: 0, dy: 0 };
-  const stick = { x: 0, y: 0 };
+  const touch = { x: 0, y: 0 };
+  const pad = { x: 0, y: 0 };
   const state = {
     jump: false,
     jumpDown: false,
@@ -18,7 +22,8 @@ export function createInput(canvas) {
     touch: false,
   };
 
-  const down = new Set();
+  const mouse = { left: false };
+  const pads = { jump: false, cast: false, interact: false, ritual: false };
 
   function onKey(e, on) {
     if (e.repeat && on) return;
@@ -40,9 +45,11 @@ export function createInput(canvas) {
   addEventListener('keydown', (e) => onKey(e, true));
   addEventListener('keyup', (e) => onKey(e, false));
 
-  canvas.addEventListener('click', () => {
-    if (!state.locked) canvas.requestPointerLock?.();
-  });
+  function tryLock() {
+    if (document.pointerLockElement !== canvas) canvas.requestPointerLock?.();
+  }
+
+  canvas.addEventListener('click', tryLock);
   document.addEventListener('pointerlockchange', () => {
     state.locked = document.pointerLockElement === canvas;
   });
@@ -54,22 +61,24 @@ export function createInput(canvas) {
   addEventListener('mousedown', (e) => {
     if (e.button === 0) {
       state.castDown = true;
-      down.add('mouse');
+      mouse.left = true;
     }
   });
   addEventListener('mouseup', (e) => {
-    if (e.button === 0) down.delete('mouse');
+    if (e.button === 0) mouse.left = false;
   });
 
-  const pads = { jump: false, cast: false, interact: false, ritual: false };
-
   function readPad() {
+    pad.x = 0;
+    pad.y = 0;
     const gp = navigator.getGamepads?.()[0];
     if (!gp) return;
-    stick.x += gp.axes[0] || 0;
-    stick.y += gp.axes[1] || 0;
-    look.dx += (gp.axes[2] || 0) * 18;
-    look.dy += (gp.axes[3] || 0) * 14;
+    pad.x = deadzone(gp.axes[0] || 0, FEEL.padDead);
+    pad.y = deadzone(gp.axes[1] || 0, FEEL.padDead);
+    const lx = deadzone(gp.axes[2] || 0, FEEL.padDead);
+    const ly = deadzone(gp.axes[3] || 0, FEEL.padDead);
+    look.dx += lx * FEEL.padLook;
+    look.dy += ly * FEEL.padLook;
     if (gp.buttons[0]?.pressed && !pads.jump) state.jumpDown = true;
     if (gp.buttons[2]?.pressed && !pads.cast) state.castDown = true;
     if (gp.buttons[1]?.pressed && !pads.interact) state.interactDown = true;
@@ -79,15 +88,15 @@ export function createInput(canvas) {
     pads.interact = !!gp.buttons[1]?.pressed;
     pads.ritual = !!gp.buttons[3]?.pressed;
     if (gp.buttons[6]?.pressed || gp.buttons[7]?.pressed || gp.buttons[10]?.pressed) {
-      keys.ShiftLeft = true;
+      state.sprint = true;
     }
+    if (Math.hypot(pad.x, pad.y) > 0.08 || Math.hypot(lx, ly) > 0.08) tryLock();
   }
 
   function bindTouch() {
-    const root = document.getElementById('touch');
-    if (!root) return;
     const zone = document.getElementById('stick');
     const knob = document.getElementById('knob');
+    if (!zone || !knob) return;
     let sid = null;
     const start = (e) => {
       const t = e.changedTouches[0];
@@ -97,23 +106,21 @@ export function createInput(canvas) {
     };
     const move = (t) => {
       const r = zone.getBoundingClientRect();
-      const cx = r.left + r.width / 2;
-      const cy = r.top + r.height / 2;
-      let x = (t.clientX - cx) / (r.width * 0.42);
-      let y = (t.clientY - cy) / (r.height * 0.42);
+      let x = (t.clientX - (r.left + r.width / 2)) / (r.width * 0.42);
+      let y = (t.clientY - (r.top + r.height / 2)) / (r.height * 0.42);
       const m = Math.hypot(x, y);
       if (m > 1) {
         x /= m;
         y /= m;
       }
-      stick.x = x;
-      stick.y = y;
+      touch.x = x;
+      touch.y = y;
       knob.style.transform = `translate(${x * 28}px, ${y * 28}px)`;
     };
     const end = () => {
       sid = null;
-      stick.x = 0;
-      stick.y = 0;
+      touch.x = 0;
+      touch.y = 0;
       knob.style.transform = '';
     };
     zone.addEventListener('touchstart', start, { passive: false });
@@ -141,15 +148,16 @@ export function createInput(canvas) {
     });
   }
 
-  if ('ontouchstart' in window) {
+  const coarse = window.matchMedia?.('(pointer: coarse)')?.matches;
+  if (coarse) {
     state.touch = true;
     document.body.classList.add('touch');
     bindTouch();
   }
 
   function wish() {
-    let x = stick.x;
-    let y = stick.y;
+    let x = pad.x + touch.x;
+    let y = pad.y + touch.y;
     if (keys.KeyA || keys.ArrowLeft) x -= 1;
     if (keys.KeyD || keys.ArrowRight) x += 1;
     if (keys.KeyW || keys.ArrowUp) y -= 1;
@@ -158,6 +166,9 @@ export function createInput(canvas) {
     if (m > 1) {
       x /= m;
       y /= m;
+    } else if (m < 0.06) {
+      x = 0;
+      y = 0;
     }
     return { x, y };
   }
@@ -170,10 +181,10 @@ export function createInput(canvas) {
   }
 
   function beginFrame() {
-    readPad();
     state.sprint = !!(keys.ShiftLeft || keys.ShiftRight);
+    readPad();
     state.jump = !!(keys.Space || pads.jump);
-    state.cast = !!(down.has('mouse') || keys.KeyQ || pads.cast);
+    state.cast = !!(mouse.left || keys.KeyQ || pads.cast);
     state.interact = !!(keys.KeyE || keys.KeyF || pads.interact);
   }
 
@@ -191,5 +202,5 @@ export function createInput(canvas) {
     document.exitPointerLock?.();
   }
 
-  return { keys, state, wish, consumeLook, beginFrame, endFrame, unlock };
+  return { keys, state, wish, consumeLook, beginFrame, endFrame, unlock, tryLock };
 }

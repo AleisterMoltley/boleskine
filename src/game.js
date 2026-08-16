@@ -99,6 +99,7 @@ export function boot(canvas) {
     acc: 0,
     time: 0,
     hurtFlash: 0,
+    lockGrace: 0,
   };
 
   function questText() {
@@ -222,12 +223,18 @@ export function boot(canvas) {
     state.playing = true;
     hud.hideTitle();
     audio.resume();
-    canvas.requestPointerLock?.();
+    input.tryLock();
     cam.snap(pawn, obstacles);
   }
 
   document.getElementById('title')?.addEventListener('click', start);
   document.getElementById('again')?.addEventListener('click', () => location.reload());
+  document.addEventListener('click', (e) => {
+    if (!state.playing || state.map || state.journal || state.won) return;
+    if (e.target.closest('#map, #journal, #win, #title')) return;
+    if (!input.state.locked) state.lockGrace = 0.22;
+    input.tryLock();
+  });
 
   addEventListener('resize', () => {
     camera.aspect = innerWidth / innerHeight;
@@ -301,6 +308,7 @@ export function boot(canvas) {
       gate.rotation.y += dt * 0.35;
     }
 
+    state.lockGrace = Math.max(0, state.lockGrace - dt);
     state.castCd = Math.max(0, state.castCd - dt);
     state.invuln = Math.max(0, state.invuln - dt);
     state.hurtFlash = Math.max(0, state.hurtFlash - dt);
@@ -318,7 +326,7 @@ export function boot(canvas) {
     }
 
     if (input.state.interactDown) interact();
-    if (input.state.locked && (input.state.castDown || input.state.cast)) tryCast();
+    if (input.state.locked && state.lockGrace <= 0 && (input.state.castDown || input.state.cast)) tryCast();
 
     const inPlaza = dist2(pawn.x, pawn.z, POI.plaza.x, POI.plaza.z) < 7 * 7;
     if ((input.state.ritual || input.keys.KeyR) && inPlaza && relics.placedCount() === 7 && !state.won) {
@@ -353,6 +361,11 @@ export function boot(canvas) {
       document.getElementById('ritualFill').style.transform = `scaleX(${Math.min(1, state.ritual / 2.6)})`;
     }
 
+    const lockHint = document.getElementById('lockHint');
+    if (lockHint) {
+      lockHint.classList.toggle('show', state.playing && !input.state.locked && !state.map && !state.journal && !state.won);
+    }
+
     hud.tick(dt, state.hp, state.will, cam.orbit.yaw, placeName(pawn.x, pawn.z), relics, questText());
     renderer.render(scene, camera);
     input.endFrame();
@@ -360,12 +373,14 @@ export function boot(canvas) {
 
   requestAnimationFrame(frame);
   window.__boleskine = {
-    go(x, z, yaw) {
+    go(x, z, yaw, pitch) {
       resetPawn(pawn, x, z, obstacles);
       if (yaw != null) cam.orbit.yaw = yaw;
+      if (pitch != null) cam.orbit.pitch = pitch;
       cam.snap(pawn, obstacles);
       state.playing = true;
       hud.hideTitle();
+      document.getElementById('title')?.classList.add('hide');
     },
     pawn,
     poi: POI,

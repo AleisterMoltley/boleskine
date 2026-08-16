@@ -153,7 +153,7 @@ export function makeCrowley(mats) {
   const pose = { walk: 0, bob: 0, cast: 0 };
 
   function tick(dt, pawn, casting) {
-    pose.walk += pawn.speed * 2.15 * dt;
+    pose.walk += pawn.speed * 1.85 * dt;
     pose.bob += dt;
     if (casting) pose.cast = Math.min(1, pose.cast + dt * 8);
     else pose.cast = Math.max(0, pose.cast - dt * 6);

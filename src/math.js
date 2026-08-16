@@ -24,6 +24,23 @@ export function shorterAngle(from, to) {
   return from + d;
 }
 
+export function approach(cur, target, maxDelta) {
+  const d = target - cur;
+  if (d > maxDelta) return cur + maxDelta;
+  if (d < -maxDelta) return cur - maxDelta;
+  return target;
+}
+
+export function rotateToward(from, to, maxDelta) {
+  return approach(from, shorterAngle(from, to), maxDelta);
+}
+
+export function deadzone(v, z = 0.18) {
+  const a = Math.abs(v);
+  if (a < z) return 0;
+  return Math.sign(v) * ((a - z) / (1 - z));
+}
+
 export function hash2(ix, iz) {
   let n = ix * 374761393 + iz * 668265263;
   n = (n ^ (n >> 13)) * 1274126177;
