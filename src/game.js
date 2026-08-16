@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { FEEL, POI, RELICS, WORLD } from './config.js';
+import { POI, RELICS, WORLD } from './config.js';
+import { ENDING, MEMORIES } from './lore.js';
 import { createInput } from './input.js';
 import { createMaterials } from './materials.js';
 import { createObstacles } from './obstacles.js';
@@ -16,7 +17,6 @@ import { createAudio } from './audio.js';
 import { createHud } from './hud.js';
 import { heightAt } from './height.js';
 import { dist2 } from './math.js';
-
 const STEP = 1 / 60;
 
 function placeName(x, z) {
@@ -102,10 +102,11 @@ export function boot(canvas) {
     time: 0,
     hurtFlash: 0,
     lockGrace: 0,
+    memories: new Set(),
   };
 
   function questText() {
-    if (state.won) return 'Die Operation ist vollendet.';
+    if (state.won) return ENDING.title;
     const taken = relics.takenCount();
     const placed = relics.placedCount();
     if (taken === 0 && !state.metRose) return 'Sprich mit der Frau in Rot.';
@@ -272,7 +273,15 @@ export function boot(canvas) {
     if (input.state.map) state.map = !state.map;
     if (input.state.journal) state.journal = !state.journal;
     hud.toggleMap(state.map);
-    hud.toggleJournal(state.journal, relics, questText());
+    hud.toggleJournal(state.journal, relics, questText(), state.memories);
+
+    for (const m of MEMORIES) {
+      if (state.memories.has(m.id)) continue;
+      if (dist2(pawn.x, pawn.z, m.x, m.z) < m.r * m.r) {
+        state.memories.add(m.id);
+        hud.toast(m.whisper);
+      }
+    }
     if (state.map) drawMap();
 
     if (state.map || state.journal) {
@@ -340,6 +349,7 @@ export function boot(canvas) {
       state.ritual += dt;
       if (state.ritual > 2.6) {
         state.won = true;
+        state.memories.add('won');
         audio.win();
         hud.showWin();
         input.unlock();

@@ -1,16 +1,22 @@
 import * as THREE from 'three';
-import { PAL, POI, WORLD } from '../config.js';
+import { PLANET_COLS, POI, WORLD } from '../config.js';
 import { hash2 } from '../math.js';
 import { heightAt, isWater, pathWidth, scatter } from '../height.js';
 import {
   ashlars,
+  cairn,
+  chessTable,
   compassSquare,
+  hastingsChair,
   hoodedAdept,
   jachinBoaz,
   lectern,
   mosaicPavement,
+  press,
   roseWindow,
+  threeHours,
   tracingBoard,
+  vaultHeptagon,
 } from './symbols.js';
 
 function shadowize(root) {
@@ -249,7 +255,10 @@ export function plaza(mats) {
   g.add(dais, mosaic, board, pillars);
   for (let i = 0; i < 7; i++) {
     const a = (i / 7) * Math.PI * 2 - Math.PI / 2;
-    const ped = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.42, 0.55, 6), mats.stoneLite);
+    const ped = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.34, 0.42, 0.55, 6),
+      mats.toon(PLANET_COLS[i])
+    );
     ped.position.set(Math.cos(a) * 5.6, 0.4, Math.sin(a) * 5.6);
     g.add(ped);
   }
@@ -510,6 +519,42 @@ export function populate(scene, mats, obstacles) {
     const y = heightAt(r.x, r.z);
     obstacles.cyl(r.x, r.z, y, y + 0.7, 0.4 + r.r * 0.35, 'rock');
   }
+
+  plant(threeHours(mats), POI.cairo.x, POI.cairo.z, 0.4);
+  const cy = heightAt(POI.cairo.x, POI.cairo.z);
+  obstacles.box(POI.cairo.x, POI.cairo.z, cy, cy + 2.5, 4.0, 0.9, 0.4, 'cairo');
+
+  plant(vaultHeptagon(mats, PLANET_COLS), POI.vault.x, POI.vault.z, 0.1);
+  const vy = heightAt(POI.vault.x, POI.vault.z);
+  for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * Math.PI * 2 - Math.PI / 2;
+    obstacles.box(
+      POI.vault.x + Math.cos(a) * 4.2,
+      POI.vault.z + Math.sin(a) * 4.2,
+      vy,
+      vy + 1.6,
+      1.1,
+      0.18,
+      a,
+      'vault'
+    );
+  }
+
+  plant(chessTable(mats), POI.chess.x, POI.chess.z, 0.2);
+  const chy = heightAt(POI.chess.x, POI.chess.z);
+  obstacles.cyl(POI.chess.x, POI.chess.z, chy, chy + 0.9, 0.6, 'desk');
+
+  plant(cairn(mats), POI.spiral.x, POI.spiral.z, 0.3);
+  const cny = heightAt(POI.spiral.x, POI.spiral.z);
+  obstacles.cyl(POI.spiral.x, POI.spiral.z, cny, cny + 1.8, 0.7, 'rock');
+
+  plant(press(mats), POI.press.x, POI.press.z, -0.4);
+  const pry = heightAt(POI.press.x, POI.press.z);
+  obstacles.box(POI.press.x, POI.press.z, pry, pry + 1.2, 0.75, 0.5, -0.4, 'desk');
+
+  plant(hastingsChair(mats), POI.nether.x, POI.nether.z, Math.PI);
+  const ny = heightAt(POI.nether.x, POI.nether.z);
+  obstacles.cyl(POI.nether.x, POI.nether.z, ny, ny + 0.9, 0.32, 'desk');
 
   const yard = mosaicPavement(5.4, 6, mats, true);
   plant(yard, POI.spawn.x, POI.spawn.z + 1.4);

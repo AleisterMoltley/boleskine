@@ -272,6 +272,17 @@
       opacity: 0.7;
     }
     #journal .row.have { opacity: 1; }
+    #journal .sub { opacity: 0.55; font-size: 13px; margin: 0 0 14px; }
+    #journal .chap { margin: 0 0 16px; }
+    #journal .chap h4 {
+      margin: 0 0 6px;
+      font-family: "Cinzel Decorative", serif;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      color: var(--gold);
+    }
+    #journal .chap p { margin: 0; font-size: 15px; line-height: 1.45; opacity: 0.9; }
+    #journal { overflow: auto; }
     #ritual {
       display: none;
       position: fixed;
@@ -375,7 +386,7 @@
     <canvas id="mapCanvas" width="640" height="640"></canvas>
   </div>
   <div id="journal">
-    <h3>Journal</h3>
+    <h3>Beichte</h3>
     <div id="journalBody"></div>
   </div>
   <div id="title">

@@ -88,7 +88,15 @@ export const POI = {
   pier: { x: -20.0, z: 96.0, name: 'Ness-Steg' },
   spiral: { x: 98.0, z: -50.0, name: 'Spiralhügel' },
   willow: { x: 74.0, z: 46.0, name: 'Trauerweide' },
+  cairo: { x: -16.0, z: 44.0, name: 'Das Fremde Zimmer' },
+  vault: { x: 24.0, z: -22.0, name: 'Die Kammer' },
+  chess: { x: -30.0, z: 34.0, name: 'Die Partie' },
+  hollow: { x: -68.0, z: 10.0, name: 'Die Senke' },
+  press: { x: 26.0, z: -70.0, name: 'Die Presse' },
+  nether: { x: 6.0, z: 86.0, name: 'Der Stuhl' },
 };
+
+export const PLANET_COLS = [0x2a2438, 0x3a5088, 0x8a2430, 0xc9a24a, 0x3a6840, 0xb87838, 0xb8b8c8];
 
 export const RELICS = [
   {

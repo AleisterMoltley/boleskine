@@ -1,4 +1,5 @@
 import { RELICS } from './config.js';
+import { ENDING, MEMORIES, RELIC_NOTES } from './lore.js';
 
 export function createHud() {
   const hpFill = document.getElementById('hpFill');
@@ -58,17 +59,30 @@ export function createHud() {
     mapEl.classList.toggle('show', on);
   }
 
-  function toggleJournal(on, relics, quest) {
+  function toggleJournal(on, relics, quest, memories) {
     journalEl.classList.toggle('show', on);
     if (on) {
+      const found = MEMORIES.filter((m) => memories.has(m.id));
+      const chaps = found
+        .map((m) => `<article class="chap"><h4>${m.title}</h4><p>${m.body}</p></article>`)
+        .join('');
+      const notes = relics.items
+        .filter((r) => r.taken)
+        .map((r) => {
+          const n = RELIC_NOTES[r.id];
+          if (!n) return '';
+          return `<article class="chap"><h4>${n.title}</h4><p>${n.body}</p></article>`;
+        })
+        .join('');
+      const end = memories.has('won')
+        ? `<article class="chap"><h4>${ENDING.title}</h4><p>${ENDING.body}</p></article>`
+        : '';
       journalBody.innerHTML =
         `<p class="q">${quest}</p>` +
-        relics.items
-          .map((r) => {
-            const st = r.placed ? 'gesetzt' : r.taken ? 'getragen' : r.hint;
-            return `<div class="row ${r.taken ? 'have' : ''}"><b>${r.name}</b><span>${st}</span></div>`;
-          })
-          .join('');
+        `<p class="sub">${found.length} Seiten der Beichte · ${relics.takenCount()}/7 Dinge</p>` +
+        (chaps || '<p class="sub">Geh. Der Text schreibt sich, wo du stehst.</p>') +
+        notes +
+        end;
     }
   }
 
@@ -77,6 +91,10 @@ export function createHud() {
   }
 
   function showWin() {
+    const t = document.querySelector('#win h2');
+    const p = document.querySelector('#win p');
+    if (t) t.textContent = ENDING.title;
+    if (p) p.textContent = ENDING.body;
     winEl.classList.add('show');
   }
 

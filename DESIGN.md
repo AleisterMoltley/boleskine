@@ -10,7 +10,7 @@
 
 ## One-Sentence Pitch
 
-You are Aleister Crowley on a Burton-twisted Loch Ness island: recover the seven implements of the Abramelin Operation and close the Working at the hexagram.
+You are Aleister Crowley on a night island stitched from his life: Boleskine, the Cairo hours, Cefalù, the desert aethyrs. Walk, remember, finish the Working.
 
 ## Core Loop
 
@@ -72,10 +72,11 @@ World is code-built (toon meshes). Image-gen key art was blocked by moderation; 
 
 ## Backlog
 
-- [ ] More rite variants / second ending
+- [x] Confessions journal from place-memories
+- [x] Cairo hours, vault, chess, cairn, press, Hastings chair, hollow
+- [x] Leah, Bennett, Neuburg, Eckenstein, the poet
 - [ ] Aiwass as a voiced sky event
 - [ ] Horse / boat
-- [ ] Weather (ash rain)
 
 ## Future / nice to have
 

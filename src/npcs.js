@@ -130,6 +130,71 @@ export function createNpcs(scene, mats) {
     ]
   );
 
+  const leah = body(mats, mats.skin, mats.sash, 1.05);
+  add(
+    'leah',
+    'Die Lehrerin',
+    POI.abbey.x - 6,
+    POI.abbey.z + 4,
+    leah,
+    [
+      'Ich habe Kinder unterrichtet, bevor ich dieses Haus führte. Der Unterschied ist kleiner, als man denkt.',
+      'Die bemalten Wände sind verblasst. Was blieb, ist der Hof und wer noch hier sitzt.',
+    ]
+  );
+
+  const bennett = body(mats, mats.skinShadow, mats.sand, 1.0);
+  add(
+    'bennett',
+    'Der Freund',
+    POI.wood.x - 5,
+    POI.wood.z + 8,
+    bennett,
+    [
+      'Ich bin nach Osten gegangen. Du bist geblieben. Wir haben uns das gelehrt, was der andere nicht wollte.',
+      'Der Atem zählt. Der Rest ist Möbel.',
+    ]
+  );
+
+  const neuburg = body(mats, mats.skin, mats.stone, 0.92);
+  add(
+    'neuburg',
+    'Der Schreiber',
+    POI.hollow.x + 4,
+    POI.hollow.z - 3,
+    neuburg,
+    [
+      'In der Senke soll man nicht lange stehen. Ich habe dort diktiert, bis die Stimme umkippte.',
+      'Nachher habe ich Verse gemacht. Sie sind höflicher als das Protokoll.',
+    ]
+  );
+
+  const eck = body(mats, mats.skinShadow, mats.stoneLite, 1.08);
+  add(
+    'eckenstein',
+    'Der Seilkamerad',
+    POI.spiral.x - 5,
+    POI.spiral.z + 4,
+    eck,
+    [
+      'Das Seil hält, oder es hält nicht. Magie ist keine Ausrede am Grat.',
+      'Den Haufen habe ich nicht gesetzt. Aber er ist richtig geschichtet.',
+    ]
+  );
+
+  const poet = body(mats, mats.skin, mats.ghost, 1.1);
+  add(
+    'poet',
+    'Der Dichter',
+    POI.manor.x + 14,
+    POI.manor.z - 6,
+    poet,
+    [
+      'Ich trete nicht ein. Die Halle hat entschieden, und ich habe ihr recht gegeben.',
+      'Behalt dein Ausharren. Ich behalte den Turm und die Vögel.',
+    ]
+  );
+
   const perch = heightAt(POI.plaza.x + 3.5, POI.plaza.z - 6) + 1.6;
   raven.position.y = perch;
 

@@ -346,6 +346,129 @@ export function lectern(mats) {
   return g;
 }
 
+export function threeHours(mats) {
+  const g = new THREE.Group();
+  const cols = [0x2a3a68, 0xc9a24a, 0x8a2430];
+  for (let i = 0; i < 3; i++) {
+    const x = (i - 1) * 2.6;
+    const booth = new THREE.Mesh(new THREE.BoxGeometry(2.1, 2.4, 1.4), mats.sand);
+    booth.position.set(x, 1.2, 0);
+    const void_ = new THREE.Mesh(
+      new THREE.BoxGeometry(1.4, 1.7, 0.2),
+      new THREE.MeshBasicMaterial({ color: cols[i] })
+    );
+    void_.position.set(x, 1.15, 0.72);
+    g.add(booth, void_);
+  }
+  return g;
+}
+
+export function vaultHeptagon(mats, colors) {
+  const g = new THREE.Group();
+  const n = 7;
+  const r = 4.4;
+  for (let i = 0; i < n; i++) {
+    const a0 = (i / n) * Math.PI * 2 - Math.PI / 2;
+    const a1 = ((i + 1) / n) * Math.PI * 2 - Math.PI / 2;
+    const x = (Math.cos(a0) + Math.cos(a1)) * 0.5 * r;
+    const z = (Math.sin(a0) + Math.sin(a1)) * 0.5 * r;
+    const wall = new THREE.Mesh(
+      new THREE.BoxGeometry(2.15, 1.55, 0.22),
+      new THREE.MeshToonMaterial({ color: colors[i], gradientMap: mats.ramp })
+    );
+    wall.position.set(x, 0.78, z);
+    wall.rotation.y = Math.atan2(Math.cos(a0) + Math.cos(a1), Math.sin(a0) + Math.sin(a1));
+    g.add(wall);
+  }
+  return g;
+}
+
+export function chessTable(mats) {
+  const g = new THREE.Group();
+  const top = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.08, 1.15), mats.woodDeep);
+  top.position.y = 0.78;
+  const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 0.74, 6), mats.wood);
+  leg.position.y = 0.37;
+  g.add(top, leg);
+  const s = 1.0 / 8;
+  for (let i = 0; i < 8; i++) {
+    for (let j = 0; j < 8; j++) {
+      const sq = new THREE.Mesh(
+        new THREE.BoxGeometry(s * 0.92, 0.02, s * 0.92),
+        (i + j) % 2 ? mats.bone : mats.robeDeep
+      );
+      sq.position.set((i - 3.5) * s, 0.83, (j - 3.5) * s);
+      g.add(sq);
+    }
+  }
+  const pieces = [
+    [-0.38, -0.38, 0.12, mats.bone],
+    [-0.25, -0.38, 0.1, mats.bone],
+    [0.12, -0.12, 0.14, mats.bone],
+    [0.38, 0.25, 0.12, mats.robeDeep],
+    [0.25, 0.38, 0.16, mats.robeDeep],
+    [-0.12, 0.12, 0.1, mats.robeDeep],
+  ];
+  for (const [x, z, h, mat] of pieces) {
+    const p = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.055, h, 6), mat);
+    p.position.set(x, 0.84 + h * 0.5, z);
+    g.add(p);
+  }
+  return g;
+}
+
+export function cairn(mats) {
+  const g = new THREE.Group();
+  const sizes = [0.7, 0.55, 0.42, 0.3];
+  let y = 0;
+  for (let i = 0; i < sizes.length; i++) {
+    const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(sizes[i], 0), i % 2 ? mats.stone : mats.stoneLite);
+    y += sizes[i] * 0.7;
+    rock.position.y = y;
+    rock.rotation.y = i * 0.7;
+    rock.scale.set(1.2, 0.7, 1);
+    g.add(rock);
+    y += sizes[i] * 0.25;
+  }
+  return g;
+}
+
+export function press(mats) {
+  const g = new THREE.Group();
+  const bed = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.7, 0.9), mats.wood);
+  bed.position.y = 0.35;
+  const screw = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.8, 8), mats.iron);
+  screw.position.set(0, 1.05, 0);
+  const plate = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.08, 0.7), mats.iron);
+  plate.position.set(0, 0.78, 0);
+  const sheet = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.02, 0.7), mats.bone);
+  sheet.position.set(0.7, 0.72, 0);
+  sheet.rotation.z = 0.08;
+  g.add(bed, screw, plate, sheet);
+  return g;
+}
+
+export function hastingsChair(mats) {
+  const g = new THREE.Group();
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.06, 0.48), mats.wood);
+  seat.position.y = 0.48;
+  const back = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.06), mats.woodDeep);
+  back.position.set(0, 0.85, -0.22);
+  const leg = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.48, 0.06), mats.wood);
+  for (const [x, z] of [
+    [-0.2, -0.18],
+    [0.2, -0.18],
+    [-0.2, 0.18],
+    [0.2, 0.18],
+  ]) {
+    const l = leg.clone();
+    l.position.set(x, 0.24, z);
+    g.add(l);
+  }
+  g.add(seat, back);
+  return g;
+}
+
 export function hoodedAdept(mats) {
   const g = new THREE.Group();
   const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.42, 1.35, 8), mats.robe);

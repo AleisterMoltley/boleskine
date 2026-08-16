@@ -49,6 +49,9 @@ export function createCombat(scene, mats) {
     if (nearTown || isWater(x, z)) continue;
     spots.push({ x, z });
   }
+  spots.push({ x: POI.hollow.x + 6, z: POI.hollow.z + 2 });
+  spots.push({ x: POI.hollow.x - 5, z: POI.hollow.z - 4 });
+  spots.push({ x: POI.hollow.x + 2, z: POI.hollow.z - 7 });
   for (const s of spots) spawnShadow(s.x, s.z);
 
   function fire(from, yaw) {

@@ -13,6 +13,13 @@ const PATHS = [
   [POI.kirk.x, POI.kirk.z, POI.spiral.x, POI.spiral.z],
   [POI.manor.x, POI.manor.z, POI.pier.x, POI.pier.z],
   [POI.village.x, POI.village.z, POI.spiral.x, POI.spiral.z],
+  [POI.manor.x, POI.manor.z, POI.cairo.x, POI.cairo.z],
+  [POI.cairo.x, POI.cairo.z, POI.plaza.x, POI.plaza.z],
+  [POI.plaza.x, POI.plaza.z, POI.vault.x, POI.vault.z],
+  [POI.wood.x, POI.wood.z, POI.hollow.x, POI.hollow.z],
+  [POI.hollow.x, POI.hollow.z, POI.spawn.x, POI.spawn.z],
+  [POI.village.x, POI.village.z, POI.press.x, POI.press.z],
+  [POI.pier.x, POI.pier.z, POI.nether.x, POI.nether.z],
 ];
 
 const FLATS = [
@@ -25,6 +32,11 @@ const FLATS = [
   { x: POI.wood.x, z: POI.wood.z, r: 8, h: 6.4 },
   { x: POI.willow.x, z: POI.willow.z, r: 6, h: 7.2 },
   { x: POI.spiral.x, z: POI.spiral.z, r: 7, h: 16.4 },
+  { x: POI.cairo.x, z: POI.cairo.z, r: 8, h: 11.4 },
+  { x: POI.vault.x, z: POI.vault.z, r: 8, h: 6.35 },
+  { x: POI.hollow.x, z: POI.hollow.z, r: 9, h: 3.8 },
+  { x: POI.press.x, z: POI.press.z, r: 6, h: 6.6 },
+  { x: POI.nether.x, z: POI.nether.z, r: 5, h: 2.15 },
 ];
 
 function bump(x, z, cx, cz, r, h) {
@@ -49,6 +61,7 @@ export function rawLand(x, z) {
   h += bump(x, z, POI.abbey.x, POI.abbey.z, 20, 3.6);
   h += bump(x, z, POI.wood.x - 8, POI.wood.z + 10, 28, 2.8);
   h += bump(x, z, -10, 52, 16, 3.4);
+  h -= bump(x, z, POI.hollow.x, POI.hollow.z, 16, 5.2);
 
   const sx = x - POI.spiral.x;
   const sz = z - POI.spiral.z;
