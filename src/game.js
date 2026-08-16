@@ -60,7 +60,8 @@ export function boot(canvas) {
   scene.add(crowley.root);
 
   const pawn = createPawn(POI.spawn.x, POI.spawn.z);
-  pawn.facing = 0.2;
+  pawn.facing = Math.PI;
+  pawn.yaw = Math.PI;
   const cam = createChaseCam(camera);
   cam.snap(pawn, obstacles);
   const input = createInput(canvas);

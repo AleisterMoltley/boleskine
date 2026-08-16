@@ -53,8 +53,8 @@ export function createCombat(scene, mats) {
 
   function fire(from, yaw) {
     const mesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.11, 0), mats.glowGold);
-    const dirx = -Math.sin(yaw);
-    const dirz = -Math.cos(yaw);
+    const dirx = Math.sin(yaw);
+    const dirz = Math.cos(yaw);
     mesh.position.set(from.x + dirx * 0.8, from.y + 1.35, from.z + dirz * 0.8);
     group.add(mesh);
     bolts.push({ mesh, x: mesh.position.x, y: mesh.position.y, z: mesh.position.z, vx: dirx * 22, vz: dirz * 22, life: 1.15 });

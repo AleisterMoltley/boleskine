@@ -14,8 +14,8 @@ export function createPawn(x, z) {
     vx: 0,
     vy: 0,
     vz: 0,
-    yaw: 0,
-    facing: 0,
+    yaw: Math.PI,
+    facing: Math.PI,
     grounded: true,
     swimming: false,
     coyote: 0,
@@ -165,6 +165,6 @@ export function stepPawn(p, dt, input, fx, fz, obstacles) {
   const sp = Math.hypot(p.vx, p.vz);
   p.speed = sp;
   p.moving = sp > 0.35;
-  if (wishLen > 0.1) p.facing = Math.atan2(-wishX, -wishZ);
+  if (wishLen > 0.1) p.facing = Math.atan2(wishX, wishZ);
   p.yaw = rotateToward(p.yaw, p.facing, FEEL.turnRate * dt);
 }

@@ -74,7 +74,7 @@ export function createChaseCam(camera) {
     tick(p, dt, obstacles, moving) {
       orbit.mouseIdle += dt;
       if (moving && orbit.mouseIdle > 0.65) {
-        orbit.yaw = rotateToward(orbit.yaw, p.yaw, FEEL.camRecenter * dt);
+        orbit.yaw = rotateToward(orbit.yaw, p.yaw + Math.PI, FEEL.camRecenter * dt);
       }
       keepClear(p, obstacles, dt);
       const k = 1 - Math.exp(-FEEL.camLag * dt);
