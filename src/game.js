@@ -1,0 +1,375 @@
+import * as THREE from 'three';
+import { FEEL, POI, RELICS, WORLD } from './config.js';
+import { createInput } from './input.js';
+import { createMaterials } from './materials.js';
+import { createObstacles } from './obstacles.js';
+import { createPawn, resetPawn, stepPawn } from './controller.js';
+import { createChaseCam } from './camera.js';
+import { makeCrowley } from './player.js';
+import { createSky } from './world/sky.js';
+import { createTerrain, rippleWater } from './world/terrain.js';
+import { populate } from './world/props.js';
+import { createNpcs } from './npcs.js';
+import { createCombat } from './combat.js';
+import { createRelics } from './relics.js';
+import { createAudio } from './audio.js';
+import { createHud } from './hud.js';
+import { heightAt } from './height.js';
+import { dist2 } from './math.js';
+
+const STEP = 1 / 60;
+
+function placeName(x, z) {
+  let best = 'Die Nachtinsel';
+  let bd = 38 * 38;
+  for (const k of Object.keys(POI)) {
+    const p = POI[k];
+    const d = dist2(x, z, p.x, p.z);
+    if (d < bd) {
+      bd = d;
+      best = p.name;
+    }
+  }
+  return best;
+}
+
+export function boot(canvas) {
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.28;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, 0.12, 420);
+  camera.position.set(-20, 22, 48);
+
+  const mats = createMaterials();
+  createSky(scene, mats);
+  const terrain = createTerrain(scene, mats);
+  const obstacles = createObstacles();
+  const world = populate(scene, mats, obstacles);
+  const npcs = createNpcs(scene, mats);
+  const relics = createRelics(scene, mats);
+  const combat = createCombat(scene, mats);
+  const crowley = makeCrowley(mats);
+  scene.add(crowley.root);
+
+  const pawn = createPawn(POI.spawn.x, POI.spawn.z);
+  pawn.facing = 0.2;
+  const cam = createChaseCam(camera);
+  cam.snap(pawn, obstacles);
+  const input = createInput(canvas);
+  const audio = createAudio();
+  const hud = createHud();
+
+  const fx = new THREE.Group();
+  scene.add(fx);
+  const gate = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.55, 1.4, 28, 10, 1, true),
+    new THREE.MeshBasicMaterial({
+      color: 0xe8d6a0,
+      transparent: true,
+      opacity: 0,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    })
+  );
+  gate.position.set(POI.plaza.x, heightAt(POI.plaza.x, POI.plaza.z) + 14, POI.plaza.z);
+  scene.add(gate);
+
+  const state = {
+    playing: false,
+    hp: 5,
+    will: 100,
+    invuln: 0,
+    castCd: 0,
+    stepAcc: 0,
+    talking: null,
+    map: false,
+    journal: false,
+    ritual: 0,
+    won: false,
+    metRose: false,
+    lastShrine: { x: POI.spawn.x, z: POI.spawn.z },
+    quest: 'Sprich mit der Scharlachroten Frau.',
+    acc: 0,
+    time: 0,
+    hurtFlash: 0,
+  };
+
+  function questText() {
+    if (state.won) return 'Die Operation ist vollendet.';
+    const taken = relics.takenCount();
+    const placed = relics.placedCount();
+    if (taken === 0 && !state.metRose) return 'Sprich mit der Scharlachroten Frau.';
+    if (taken === 0) return 'Finde die sieben Werkzeuge der Operation.';
+    if (placed < 7 && taken < 7) return `Werkzeuge ${taken}/7 — bring sie zum Hexagramm.`;
+    if (placed < 7) return `Setze die Reliquien auf die Sockel (${placed}/7).`;
+    return 'Halt R im Hexagramm — vollende die Operation.';
+  }
+
+  function talkTo(npc) {
+    const line = npc.lines[npc.i % npc.lines.length];
+    npc.i++;
+    state.talking = npc;
+    hud.openDialogue(npc.name, line);
+    audio.talk();
+    if (npc.id === 'rose') state.metRose = true;
+  }
+
+  function interact() {
+    if (state.talking) {
+      hud.closeDialogue();
+      state.talking = null;
+      return;
+    }
+    const npc = npcs.nearest(pawn.x, pawn.z);
+    if (npc) {
+      talkTo(npc);
+      return;
+    }
+    const it = relics.nearest(pawn.x, pawn.z);
+    if (it) {
+      relics.take(it);
+      audio.pickup();
+      hud.toast(`${it.name} — genommen.`);
+      return;
+    }
+    const ped = relics.nearestPed(pawn.x, pawn.z);
+    if (ped) {
+      const have = relics.items.find((i) => i.id === ped.id && i.taken && !i.placed);
+      if (have) {
+        relics.place(have, ped);
+        audio.pickup();
+        hud.toast(`${have.name} steht.`);
+        if (relics.placedCount() === 7) hud.toast('Sieben. Der Kreis ist bereit.');
+      } else {
+        const name = RELICS.find((r) => r.id === ped.id)?.name;
+        hud.toast(`Sockel für ${name}.`);
+      }
+    }
+  }
+
+  function hurt(n) {
+    if (state.invuln > 0 || state.won || !state.playing) return;
+    state.hp -= n;
+    state.invuln = 0.85;
+    state.hurtFlash = 0.35;
+    audio.hurt();
+    if (state.hp <= 0) {
+      const s = relics.nearestShrine(pawn.x, pawn.z);
+      resetPawn(pawn, s.x, s.z, obstacles);
+      state.hp = 5;
+      state.will = 100;
+      hud.toast(`Zurück: ${s.name}.`);
+      cam.snap(pawn, obstacles);
+    }
+  }
+
+  function tryCast() {
+    if (state.castCd > 0 || state.will < 10 || state.talking) return;
+    state.will -= 10;
+    state.castCd = 0.42;
+    combat.fire(pawn, pawn.yaw);
+    audio.cast();
+  }
+
+  function drawMap() {
+    const c = document.getElementById('mapCanvas');
+    if (!c) return;
+    const g = c.getContext('2d');
+    const w = c.width;
+    const h = c.height;
+    g.clearRect(0, 0, w, h);
+    g.fillStyle = '#0c0a12';
+    g.fillRect(0, 0, w, h);
+    const sc = w / WORLD.size;
+    const to = (x, z) => [w * 0.5 + x * sc, h * 0.5 + z * sc];
+    g.fillStyle = '#1a2430';
+    g.beginPath();
+    g.arc(w * 0.5, h * 0.5, WORLD.islandR * sc, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = '#0c1820';
+    g.fillRect(w * 0.5 - 70 * sc, h * 0.5 + 70 * sc, 140 * sc, 80 * sc);
+    g.fillStyle = '#c9a24a';
+    for (const k of Object.keys(POI)) {
+      const p = POI[k];
+      const [mx, mz] = to(p.x, p.z);
+      g.fillRect(mx - 2, mz - 2, 4, 4);
+    }
+    for (const it of relics.items) {
+      g.fillStyle = it.placed ? '#7ec8c0' : it.taken ? '#8a1c28' : '#e8d6a0';
+      const [mx, mz] = to(it.x, it.z);
+      g.beginPath();
+      g.arc(mx, mz, 3, 0, Math.PI * 2);
+      g.fill();
+    }
+    const [px, pz] = to(pawn.x, pawn.z);
+    g.fillStyle = '#f2efe4';
+    g.beginPath();
+    g.moveTo(px + Math.sin(pawn.yaw) * 7, pz + Math.cos(pawn.yaw) * 7);
+    g.lineTo(px + Math.sin(pawn.yaw + 2.5) * 5, pz + Math.cos(pawn.yaw + 2.5) * 5);
+    g.lineTo(px + Math.sin(pawn.yaw - 2.5) * 5, pz + Math.cos(pawn.yaw - 2.5) * 5);
+    g.fill();
+  }
+
+  function start() {
+    if (state.playing) return;
+    state.playing = true;
+    hud.hideTitle();
+    audio.resume();
+    canvas.requestPointerLock?.();
+    cam.snap(pawn, obstacles);
+  }
+
+  document.getElementById('title')?.addEventListener('click', start);
+  document.getElementById('again')?.addEventListener('click', () => location.reload());
+
+  addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+
+  let last = performance.now();
+  let foot = 0;
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    let dt = (now - last) / 1000;
+    last = now;
+    if (dt > 0.05) dt = 0.05;
+    state.time += dt;
+    input.beginFrame();
+
+    if (!state.playing) {
+      const t = state.time;
+      camera.position.set(-58 + Math.sin(t * 0.08) * 5, 17.5, 78 + Math.cos(t * 0.08) * 3);
+      camera.lookAt(POI.manor.x + 2, heightAt(POI.manor.x, POI.manor.z) + 5.5, POI.manor.z - 6);
+      world.ness.position.x = 8 + Math.sin(t * 0.15) * 10;
+      world.ness.position.z = 124 + Math.cos(t * 0.12) * 6;
+      rippleWater(terrain.water, t);
+      npcs.tick(t);
+      relics.tick(t);
+      renderer.render(scene, camera);
+      input.endFrame();
+      return;
+    }
+
+    if (input.state.map) state.map = !state.map;
+    if (input.state.journal) state.journal = !state.journal;
+    hud.toggleMap(state.map);
+    hud.toggleJournal(state.journal, relics, questText());
+    if (state.map) drawMap();
+
+    if (state.map || state.journal) {
+      input.unlock();
+    }
+
+    const look = input.consumeLook();
+    if (!state.talking && !state.map && !state.journal) cam.applyLook(look.x, look.y);
+
+    state.acc += dt;
+    if (state.acc > 0.12) state.acc = 0.12;
+    while (state.acc >= STEP) {
+      if (!state.talking && !state.map && !state.journal && !state.won) {
+        stepPawn(pawn, STEP, input, cam.orbit.yaw, obstacles);
+      } else {
+        pawn.vx *= 0.8;
+        pawn.vz *= 0.8;
+      }
+      state.acc -= STEP;
+    }
+
+    cam.tick(pawn, dt, obstacles);
+    crowley.tick(dt, pawn, state.castCd > 0.2);
+    npcs.tick(state.time);
+    relics.tick(state.time);
+    combat.tick(dt, pawn, hurt);
+    rippleWater(terrain.water, state.time);
+
+    world.ness.position.x = 8 + Math.sin(state.time * 0.15) * 10;
+    world.ness.position.z = 124 + Math.cos(state.time * 0.12) * 6;
+    world.ness.position.y = WORLD.waterY - 0.15 + Math.sin(state.time * 0.7) * 0.15;
+    world.ness.rotation.y = Math.sin(state.time * 0.1) * 0.4;
+    if (relics.placedCount() === 7) {
+      gate.material.opacity = Math.min(0.55, gate.material.opacity + dt * 0.2);
+      gate.rotation.y += dt * 0.35;
+    }
+
+    state.castCd = Math.max(0, state.castCd - dt);
+    state.invuln = Math.max(0, state.invuln - dt);
+    state.hurtFlash = Math.max(0, state.hurtFlash - dt);
+    if (state.hp < 5 && dist2(pawn.x, pawn.z, POI.plaza.x, POI.plaza.z) < 14 * 14) {
+      state.hp = Math.min(5, state.hp + dt * 0.35);
+    }
+    state.will = Math.min(100, state.will + dt * 16);
+
+    if (pawn.moving && pawn.grounded) {
+      foot += pawn.speed * dt;
+      if (foot > 1.15) {
+        foot = 0;
+        audio.step();
+      }
+    }
+
+    if (input.state.interactDown) interact();
+    if (input.state.locked && (input.state.castDown || input.state.cast)) tryCast();
+
+    const inPlaza = dist2(pawn.x, pawn.z, POI.plaza.x, POI.plaza.z) < 7 * 7;
+    if ((input.state.ritual || input.keys.KeyR) && inPlaza && relics.placedCount() === 7 && !state.won) {
+      state.ritual += dt;
+      if (state.ritual > 2.6) {
+        state.won = true;
+        audio.win();
+        hud.showWin();
+        input.unlock();
+      }
+    } else if (!input.keys.KeyR) {
+      state.ritual = Math.max(0, state.ritual - dt * 0.8);
+    }
+
+    const shrine = relics.nearestShrine(pawn.x, pawn.z);
+    if (dist2(pawn.x, pawn.z, shrine.x, shrine.z) < 16) state.lastShrine = shrine;
+
+    let prompt = '';
+    if (state.talking) prompt = 'E  weiter';
+    else if (npcs.nearest(pawn.x, pawn.z)) prompt = 'E  sprechen';
+    else if (relics.nearest(pawn.x, pawn.z)) prompt = 'E  aufheben';
+    else if (relics.nearestPed(pawn.x, pawn.z)) prompt = 'E  setzen';
+    else if (inPlaza && relics.placedCount() === 7 && !state.won) prompt = 'R halten  —  Operation';
+    hud.setPrompt(prompt);
+
+    const fade = document.getElementById('hurt');
+    if (fade) fade.style.opacity = String(state.hurtFlash * 0.55);
+
+    const ritualBar = document.getElementById('ritual');
+    if (ritualBar) {
+      ritualBar.classList.toggle('show', state.ritual > 0 && !state.won);
+      document.getElementById('ritualFill').style.transform = `scaleX(${Math.min(1, state.ritual / 2.6)})`;
+    }
+
+    hud.tick(dt, state.hp, state.will, cam.orbit.yaw, placeName(pawn.x, pawn.z), relics, questText());
+    renderer.render(scene, camera);
+    input.endFrame();
+  }
+
+  requestAnimationFrame(frame);
+  window.__boleskine = {
+    go(x, z, yaw) {
+      resetPawn(pawn, x, z, obstacles);
+      if (yaw != null) cam.orbit.yaw = yaw;
+      cam.snap(pawn, obstacles);
+      state.playing = true;
+      hud.hideTitle();
+    },
+    pawn,
+    poi: POI,
+    heightAt,
+  };
+  return { start };
+}

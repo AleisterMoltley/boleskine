@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>BOLESKINE — Die Nachtmahr-Operation</title>
+  <meta name="description" content="Spiele Aleister Crowley auf der Nachtinsel. Finde die sieben Werkzeuge. Vollende die Operation." />
+  <meta property="og:title" content="BOLESKINE — Die Nachtmahr-Operation" />
+  <meta property="og:description" content="Spiele Aleister Crowley auf der Nachtinsel. Finde die sieben Werkzeuge. Vollende die Operation." />
+  <meta property="og:image" content="/og.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%07060f'/%3E%3Ccircle cx='16' cy='12' r='7' fill='%23e8d6a0'/%3E%3Cpath d='M8 28 Q16 16 24 28' fill='none' stroke='%238a1c28' stroke-width='2'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      --ink: #07060f;
+      --paper: #e8dcc4;
+      --gold: #c9a24a;
+      --blood: #8a1c28;
+      --teal: #7ec8c0;
+      --track: #16121c;
+    }
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: "IM Fell English", Georgia, serif;
+      user-select: none;
+    }
+    canvas { display: block; }
+    #hud { pointer-events: none; }
+    #hp, #willWrap {
+      position: fixed;
+      left: max(18px, env(safe-area-inset-left));
+    }
+    #hp { top: max(18px, env(safe-area-inset-top)); }
+    #hp .track, #willWrap .track {
+      width: 168px;
+      height: 14px;
+      background: var(--track);
+      border: 1px solid rgba(201, 162, 74, 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+    #hp .fill {
+      height: 100%;
+      background: linear-gradient(#b42a34, #5a1018);
+      transform-origin: left center;
+    }
+    #willWrap { top: max(40px, calc(env(safe-area-inset-top) + 22px)); }
+    #willWrap .track { height: 6px; border-color: rgba(126, 200, 192, 0.3); }
+    #willFill {
+      height: 100%;
+      background: linear-gradient(#b8e8e0, #4a8880);
+      transform-origin: left center;
+    }
+    #meta {
+      position: fixed;
+      top: max(16px, env(safe-area-inset-top));
+      right: max(16px, env(safe-area-inset-right));
+      text-align: right;
+    }
+    #place {
+      font-family: "Cinzel Decorative", serif;
+      letter-spacing: 0.14em;
+      font-size: 13px;
+      color: var(--gold);
+    }
+    #quest {
+      margin-top: 6px;
+      font-size: 14px;
+      max-width: 280px;
+      opacity: 0.9;
+    }
+    #relics {
+      margin-top: 10px;
+      display: flex;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+    #relics i {
+      width: 10px;
+      height: 10px;
+      border: 1px solid var(--gold);
+      transform: rotate(45deg);
+      display: block;
+      opacity: 0.35;
+    }
+    #relics i.taken { background: var(--blood); opacity: 1; }
+    #relics i.placed { background: var(--teal); opacity: 1; }
+    #toast {
+      position: fixed;
+      left: 50%;
+      top: 20%;
+      transform: translate(-50%, -10px);
+      opacity: 0;
+      transition: opacity 280ms ease, transform 280ms ease;
+      font-size: 22px;
+      letter-spacing: 0.04em;
+      text-shadow: 0 2px 12px #000;
+      text-align: center;
+    }
+    #toast.show { opacity: 1; transform: translate(-50%, 0); }
+    #prompt {
+      position: fixed;
+      left: 50%;
+      bottom: 92px;
+      transform: translateX(-50%);
+      opacity: 0;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 13px;
+      text-shadow: 0 2px 8px #000;
+      transition: opacity 160ms ease;
+    }
+    #prompt.show { opacity: 1; }
+    #hint {
+      position: fixed;
+      left: 50%;
+      bottom: max(22px, env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      opacity: 0.7;
+      text-align: center;
+    }
+    #nav {
+      position: fixed;
+      right: max(16px, env(safe-area-inset-right));
+      bottom: max(16px, env(safe-area-inset-bottom));
+    }
+    #compass {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      border: 2px solid #8a7048;
+      background: radial-gradient(circle at 40% 35%, #2a241c, #0c0a10);
+      position: relative;
+    }
+    #compassRose {
+      position: absolute;
+      inset: 6px;
+    }
+    #compassRose span {
+      position: absolute;
+      font-size: 10px;
+      font-family: "Cinzel Decorative", serif;
+    }
+    #compassRose .n { top: 0; left: 50%; transform: translateX(-50%); color: #b42a34; }
+    #compassRose .s { bottom: 0; left: 50%; transform: translateX(-50%); }
+    #compassRose .e { right: 2px; top: 50%; transform: translateY(-50%); }
+    #compassRose .w { left: 2px; top: 50%; transform: translateY(-50%); }
+    #compass .needle {
+      position: absolute;
+      left: 50%;
+      top: 10px;
+      border: 5px solid transparent;
+      border-bottom: 16px solid #b42a34;
+      transform: translateX(-50%);
+    }
+    #title, #win {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      padding-bottom: 10vh;
+      background: linear-gradient(to top, rgba(7, 6, 15, 0.88), transparent 58%);
+      pointer-events: auto;
+      cursor: pointer;
+      text-align: center;
+    }
+    #title.hide {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 700ms ease;
+    }
+    #title h1, #win h2 {
+      margin: 0 0 8px;
+      font-family: "Cinzel Decorative", serif;
+      font-size: clamp(36px, 7vw, 76px);
+      letter-spacing: 0.22em;
+      color: var(--paper);
+      text-shadow: 0 4px 28px #000;
+    }
+    #title p, #win p {
+      margin: 0 0 18px;
+      max-width: 520px;
+      opacity: 0.9;
+    }
+    #title .go, #win button {
+      border: 1px solid var(--gold);
+      background: #120e16;
+      color: var(--gold);
+      font: 700 12px/1 "Cinzel Decorative", serif;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 12px 22px;
+    }
+    #win {
+      display: none;
+      justify-content: center;
+      background: rgba(7, 6, 15, 0.72);
+    }
+    #win.show { display: flex; }
+    #dialogue {
+      display: none;
+      position: fixed;
+      left: 50%;
+      bottom: 110px;
+      transform: translateX(-50%);
+      width: min(560px, 90vw);
+      background: rgba(12, 10, 18, 0.92);
+      border: 1px solid rgba(201, 162, 74, 0.45);
+      padding: 16px 18px 14px;
+      pointer-events: none;
+    }
+    #dialogue.show { display: block; }
+    #dName {
+      font-family: "Cinzel Decorative", serif;
+      color: var(--gold);
+      letter-spacing: 0.12em;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+    #dText { font-size: 18px; line-height: 1.4; }
+    #map, #journal {
+      display: none;
+      position: fixed;
+      inset: 10vh 8vw;
+      background: rgba(8, 6, 14, 0.94);
+      border: 1px solid rgba(201, 162, 74, 0.4);
+      pointer-events: auto;
+      padding: 18px;
+      z-index: 8;
+    }
+    #map.show, #journal.show { display: block; }
+    #map h3, #journal h3 {
+      margin: 0 0 10px;
+      font-family: "Cinzel Decorative", serif;
+      letter-spacing: 0.16em;
+      font-size: 14px;
+      color: var(--gold);
+    }
+    #mapCanvas { width: 100%; height: calc(100% - 28px); background: #0c0a12; }
+    #journal .q { color: var(--gold); }
+    #journal .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid rgba(232, 220, 196, 0.08);
+      padding: 8px 0;
+      opacity: 0.7;
+    }
+    #journal .row.have { opacity: 1; }
+    #ritual {
+      display: none;
+      position: fixed;
+      left: 50%;
+      top: 36%;
+      transform: translateX(-50%);
+      width: min(240px, 70vw);
+    }
+    #ritual.show { display: block; }
+    #ritual .track {
+      height: 6px;
+      background: #1a1620;
+      border: 1px solid var(--gold);
+    }
+    #ritualFill {
+      height: 100%;
+      background: var(--gold);
+      transform-origin: left center;
+      transform: scaleX(0);
+    }
+    .vignette {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 55%, rgba(7, 6, 15, 0.45) 100%);
+    }
+    #grain {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.07;
+      mix-blend-mode: overlay;
+      background-image:
+        repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 3px),
+        repeating-linear-gradient(90deg, rgba(0,0,0,0.05) 0 1px, transparent 1px 2px);
+    }
+    #hurt {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 40%, #5a1018 100%);
+      opacity: 0;
+    }
+    #touch { display: none; position: fixed; inset: 0; pointer-events: none; }
+    body.touch #touch { display: block; }
+    .stick, .btn {
+      position: absolute;
+      pointer-events: auto;
+      border-radius: 999px;
+      background: rgba(20, 16, 24, 0.35);
+      border: 2px solid rgba(232, 220, 196, 0.25);
+    }
+    .stick { left: 24px; bottom: 24px; width: 124px; height: 124px; }
+    .knob {
+      position: absolute;
+      width: 52px;
+      height: 52px;
+      left: 36px;
+      top: 36px;
+      border-radius: 999px;
+      background: rgba(232, 220, 196, 0.5);
+    }
+    .btn-jump { right: 24px; bottom: 28px; width: 78px; height: 78px; }
+    .btn-cast { right: 112px; bottom: 24px; width: 54px; height: 54px; }
+    .btn-use { right: 24px; bottom: 116px; width: 54px; height: 54px; }
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <div id="hud">
+    <div id="hp"><div class="track"><div class="fill" id="hpFill"></div></div></div>
+    <div id="willWrap"><div class="track"><div id="willFill"></div></div></div>
+    <div id="meta">
+      <div id="place">Boleskine</div>
+      <div id="quest">Sprich mit der Scharlachroten Frau.</div>
+      <div id="relics"></div>
+    </div>
+    <div id="toast"></div>
+    <div id="prompt"></div>
+    <div id="hint">WASD gehen · Maus umsehen · Shift rennen · Leertaste springen · E sprechen · Klick Wille · R Ritual · M Karte · J Journal</div>
+    <div id="nav">
+      <div id="compass">
+        <div id="compassRose">
+          <span class="n">N</span><span class="e">O</span><span class="s">S</span><span class="w">W</span>
+        </div>
+        <div class="needle"></div>
+      </div>
+    </div>
+    <div id="ritual"><div class="track"><div id="ritualFill"></div></div></div>
+    <div class="vignette"></div>
+    <div id="grain"></div>
+    <div id="hurt"></div>
+  </div>
+  <div id="dialogue">
+    <div id="dName"></div>
+    <div id="dText"></div>
+  </div>
+  <div id="map">
+    <h3>Nachtinsel</h3>
+    <canvas id="mapCanvas" width="640" height="640"></canvas>
+  </div>
+  <div id="journal">
+    <h3>Journal</h3>
+    <div id="journalBody"></div>
+  </div>
+  <div id="title">
+    <h1>BOLESKINE</h1>
+    <p>Do what thou wilt shall be the whole of the Law.<br />Die Abramelin-Operation ist zerrissen. Du bist Crowley. Hol die sieben Werkzeuge zurück.</p>
+    <div class="go">Klicken und eintreten</div>
+  </div>
+  <div id="win">
+    <h2>LOVE IS THE LAW</h2>
+    <p>Love under will. Der Mond öffnet sich. Die Operation hält.</p>
+    <button type="button" id="again">Noch einmal</button>
+  </div>
+  <div id="touch">
+    <div class="stick" id="stick"><div class="knob" id="knob"></div></div>
+    <div class="btn btn-jump" id="btnJump"></div>
+    <div class="btn btn-cast" id="btnCast"></div>
+    <div class="btn btn-use" id="btnUse"></div>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
