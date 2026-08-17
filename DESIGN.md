@@ -79,6 +79,7 @@ World is code-built (toon meshes). Image-gen key art was blocked by moderation; 
 - [x] Mars wrap: iron circle, crater, Cydonia, polar shrine, canal orrery, red seal
 - [x] Grant / gnosis: vesica, Daath gap, Lam niche, mauve threshold, veiled hall, 22 cells, Spare marks
 - [x] Denser world: clutter, ravens, moths, smoke, wrecks, more trees/rocks
+- [x] Path edges, grit texture, ten chapter-stones (most of the planet still empty)
 - [ ] Aiwass as a voiced sky event
 - [ ] Horse / boat
 

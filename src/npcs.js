@@ -274,6 +274,32 @@ export function createNpcs(scene, mats) {
     ]
   );
 
+  const walker = body(mats, mats.skinShadow, mats.wood, 0.94);
+  add(
+    'walker',
+    'Ein Geher',
+    POI.mile.x + 2.2,
+    POI.mile.z + 1.4,
+    walker,
+    [
+      'Der Stein zählt nicht die Meilen. Er zählt, dass du angehalten hast.',
+      'Hof oder Haus — beides ist ein Zurück. Der Weg dazwischen ist die Arbeit.',
+    ]
+  );
+
+  const mothman = body(mats, mats.skin, mats.goldDeep, 0.9);
+  add(
+    'mothkeep',
+    'Die Hüterin des Brunnens',
+    POI.mothwell.x + 2.4,
+    POI.mothwell.z - 1.6,
+    mothman,
+    [
+      'Sie kommen auf das Gold zu und verbrennen nicht. Das unterscheidet sie von uns.',
+      'Nicht trinken. Nur sehen, bis das Spiegelbild aufgibt.',
+    ]
+  );
+
   const perch = mapToPos(POI.plaza.x + 3.5, POI.plaza.z - 6, 1.6);
   raven.position.copy(perch);
   const ravenNpc = list.find((n) => n.id === 'aiwass');

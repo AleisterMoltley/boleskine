@@ -161,6 +161,11 @@ function siteShape(lat, lon) {
   if (nd < 0.08) d += 0.55 * (1 - nd / 0.08);
   const ce = mapToLatLon(POI.cells.x, POI.cells.z);
   d += craterAt(lat, lon, ce.lat, ce.lon, 0.038, 0.085, 2.8, 1.4);
+  for (const key of ['redcamp', 'silent', 'stargaze', 'dustchoir']) {
+    const s = mapToLatLon(POI[key].x, POI[key].z);
+    const sd = ang(lat, lon, s.lat, s.lon);
+    if (sd < 0.06) d += 0.4 * (1 - sd / 0.06);
+  }
   return d;
 }
 

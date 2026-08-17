@@ -30,6 +30,7 @@ import {
   veiledFigure,
   vesica,
 } from './symbols.js';
+import { dressWorld } from './dress.js';
 
 function shadowize(root) {
   root.traverse((o) => {
@@ -1294,20 +1295,61 @@ export function populate(scene, mats, obstacles) {
     if (o.userData && o.userData.flap) banners.push(o.userData.flap);
   });
 
-  const smokes = [];
-  for (const [x, z] of [
-    [POI.village.x - 10, POI.village.z - 8],
-    [POI.village.x + 12, POI.village.z - 6],
-    [POI.village.x + 8, POI.village.z + 12],
-    [POI.manor.x + 4, POI.manor.z - 2],
-  ]) {
-    const puff = new THREE.Mesh(
-      new THREE.SphereGeometry(0.14, 5, 4),
-      new THREE.MeshBasicMaterial({ color: 0xb09880, transparent: true, opacity: 0.16, depthWrite: false })
-    );
-    plant(puff, x, z, 0, 4.6);
-    smokes.push(puff);
+  function lineSides(ax, az, bx, bz) {
+    const dx = bx - ax;
+    const dz = bz - az;
+    const len = Math.hypot(dx, dz) || 1;
+    const nx = -dz / len;
+    const nz = dx / len;
+    const steps = Math.max(2, Math.floor(len / 3.4));
+    for (let s = 1; s < steps; s++) {
+      const t = s / steps;
+      for (const side of [-1, 1]) {
+        const off = 3.5 + hash2(s, side + 5) * 1.4;
+        const x = ax + dx * t + nx * side * off;
+        const z = az + dz * t + nz * side * off;
+        if (isWater(x, z) || pathWidth(x, z) < 2.1) continue;
+        const k = Math.floor(hash2(s * 3 + side, Math.floor(ax + 11)) * 6);
+        if (k === 0) plant(pumpkin(mats, 0.85 + hash2(s, 2) * 0.4), x, z, t * 4);
+        else if (k === 1) plant(barrel(mats), x, z, t);
+        else if (k === 2) plant(crate(mats, hash2(s, 4)), x, z, t * 2);
+        else if (k === 3) plant(deadBush(mats, hash2(s, 6)), x, z, t);
+        else if (k === 4) {
+          plant(fencePost(mats), x, z, 0, 0.55);
+          obstacles.cyl(x, z, heightAt(x, z), heightAt(x, z) + 1.1, 0.1, 'fence');
+        } else {
+          const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.38 + hash2(s, 7) * 0.3, 0), mats.stone);
+          rock.scale.set(1.1, 0.55, 1);
+          plant(shadowize(rock), x, z, t, 0.1);
+        }
+      }
+    }
   }
+
+  lineSides(POI.spawn.x, POI.spawn.z, POI.manor.x, POI.manor.z);
+  lineSides(POI.spawn.x, POI.spawn.z, POI.plaza.x, POI.plaza.z);
+  lineSides(POI.spawn.x, POI.spawn.z, POI.mile.x, POI.mile.z);
+  lineSides(POI.mile.x, POI.mile.z, POI.plaza.x, POI.plaza.z);
+  lineSides(POI.plaza.x, POI.plaza.z, POI.kirk.x, POI.kirk.z);
+  lineSides(POI.plaza.x, POI.plaza.z, POI.village.x, POI.village.z);
+  lineSides(POI.plaza.x, POI.plaza.z, POI.wood.x, POI.wood.z);
+  lineSides(POI.village.x, POI.village.z, POI.abbey.x, POI.abbey.z);
+  lineSides(POI.manor.x, POI.manor.z, POI.pier.x, POI.pier.z);
+  lineSides(POI.kirk.x, POI.kirk.z, POI.willow.x, POI.willow.z);
+
+  for (let k = 0; k < 16; k++) {
+    const a = -2.3 + (k / 15) * 4.6;
+    const d = 4.2 + (k % 4) * 0.9;
+    const x = POI.spawn.x + Math.sin(a) * d;
+    const z = POI.spawn.z + Math.cos(a) * d;
+    if (z < POI.spawn.z - 3.2) continue;
+    if (isWater(x, z) || pathWidth(x, z) < 1.8) continue;
+    if (k % 3 === 0) plant(pumpkin(mats, 0.9), x, z, a);
+    else if (k % 3 === 1) plant(barrel(mats), x, z, a);
+    else plant(deadBush(mats, 0.5), x, z, a);
+  }
+
+  dressWorld(scene, mats, obstacles, plant);
 
   function tick(t) {
     for (const r of ravens) {
@@ -1334,12 +1376,6 @@ export function populate(scene, mats, obstacles) {
     for (let i = 0; i < banners.length; i++) {
       banners[i].rotation.z = Math.sin(t * 1.6 + i) * 0.18;
       banners[i].rotation.x = Math.sin(t * 1.1 + i * 0.7) * 0.08;
-    }
-    for (let i = 0; i < smokes.length; i++) {
-      const s = smokes[i];
-      const u = upOf(s.position);
-      s.scale.setScalar(1 + Math.sin(t * 0.8 + i) * 0.25);
-      s.position.addScaledVector(u, Math.sin(t * 0.5 + i) * 0.004);
     }
   }
 

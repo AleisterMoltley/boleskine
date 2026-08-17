@@ -72,6 +72,17 @@ export function createMaterials() {
   });
   groundMap.repeat.set(28, 28);
 
+  const rustGrit = canvasTex(256, 256, (g, w, h) => {
+    g.fillStyle = '#9a8070';
+    g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 5000; i++) {
+      g.fillStyle = i % 2 ? '#7a5a48' : '#b49880';
+      g.fillRect((Math.random() * w) | 0, (Math.random() * h) | 0, 1, 1);
+    }
+  });
+  rustGrit.repeat.set(140, 100);
+  rustGrit.wrapS = rustGrit.wrapT = THREE.RepeatWrapping;
+
   const waterMat = new THREE.MeshToonMaterial({
     color: 0x2a1814,
     gradientMap: ramp,
@@ -82,6 +93,7 @@ export function createMaterials() {
     toon,
     moonMap,
     groundMap,
+    rustGrit,
     skin: toon(PAL.skin),
     skinShadow: toon(PAL.skinShadow),
     robe: toon(PAL.robe),

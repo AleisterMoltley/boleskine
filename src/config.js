@@ -109,6 +109,16 @@ export const POI = {
   nisis: { x: -148.0, z: 118.0, name: 'Die verschleierte Halle' },
   cells: { x: 168.0, z: -118.0, name: 'Die Zellen' },
   marks: { x: -88.0, z: 22.0, name: 'Die ungenannten Zeichen' },
+  mile: { x: -18.0, z: 12.0, name: 'Der erste Stein' },
+  tworoads: { x: 6.0, z: -44.0, name: 'Zwei Wege' },
+  ink: { x: 20.0, z: -78.0, name: 'Die Klecksgrube' },
+  mothwell: { x: -80.0, z: -4.0, name: 'Der Mottenbrunnen' },
+  bonegate: { x: -82.0, z: 8.0, name: 'Das Knochentor' },
+  ashrow: { x: 82.0, z: 32.0, name: 'Die Aschenreihe' },
+  redcamp: { x: -180.0, z: -20.0, name: 'Das rostige Lager' },
+  silent: { x: -238.0, z: 8.0, name: 'Die stille Meile' },
+  stargaze: { x: 224.0, z: 100.0, name: 'Die Nachtwache' },
+  dustchoir: { x: 240.0, z: -96.0, name: 'Der Staubchor' },
 };
 
 export const PLANET_COLS = [0x2a2438, 0x3a5088, 0x8a2430, 0xc9a24a, 0x3a6840, 0xb87838, 0xb8b8c8];

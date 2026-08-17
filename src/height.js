@@ -25,6 +25,15 @@ const PATHS = [
   [POI.vault.x, POI.vault.z, POI.daath.x, POI.daath.z],
   [POI.nether.x, POI.nether.z, POI.lam.x, POI.lam.z],
   [POI.wood.x, POI.wood.z, POI.marks.x, POI.marks.z],
+  [POI.spawn.x, POI.spawn.z, POI.mile.x, POI.mile.z],
+  [POI.mile.x, POI.mile.z, POI.plaza.x, POI.plaza.z],
+  [POI.plaza.x, POI.plaza.z, POI.tworoads.x, POI.tworoads.z],
+  [POI.tworoads.x, POI.tworoads.z, POI.village.x, POI.village.z],
+  [POI.press.x, POI.press.z, POI.ink.x, POI.ink.z],
+  [POI.wood.x, POI.wood.z, POI.mothwell.x, POI.mothwell.z],
+  [POI.hollow.x, POI.hollow.z, POI.bonegate.x, POI.bonegate.z],
+  [POI.kirk.x, POI.kirk.z, POI.ashrow.x, POI.ashrow.z],
+  [POI.ashrow.x, POI.ashrow.z, POI.willow.x, POI.willow.z],
 ];
 
 const FLATS = [
@@ -55,6 +64,16 @@ const FLATS = [
   { x: POI.nisis.x, z: POI.nisis.z, r: 12, h: 6.6 },
   { x: POI.cells.x, z: POI.cells.z, r: 12, h: 4.8 },
   { x: POI.marks.x, z: POI.marks.z, r: 6, h: 6.5 },
+  { x: POI.mile.x, z: POI.mile.z, r: 5, h: 8.4 },
+  { x: POI.tworoads.x, z: POI.tworoads.z, r: 6, h: 6.4 },
+  { x: POI.ink.x, z: POI.ink.z, r: 6, h: 6.5 },
+  { x: POI.mothwell.x, z: POI.mothwell.z, r: 6, h: 6.2 },
+  { x: POI.bonegate.x, z: POI.bonegate.z, r: 6, h: 4.6 },
+  { x: POI.ashrow.x, z: POI.ashrow.z, r: 6, h: 7.4 },
+  { x: POI.redcamp.x, z: POI.redcamp.z, r: 8, h: 6.0 },
+  { x: POI.silent.x, z: POI.silent.z, r: 7, h: 5.8 },
+  { x: POI.stargaze.x, z: POI.stargaze.z, r: 8, h: 6.8 },
+  { x: POI.dustchoir.x, z: POI.dustchoir.z, r: 8, h: 5.2 },
 ];
 
 function bump(x, z, cx, cz, r, h) {
