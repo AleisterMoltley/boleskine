@@ -1,97 +1,308 @@
 import * as THREE from 'three';
-import { PLANET_R } from '../planet.js';
+import { POI } from '../config.js';
+import { mapToPos, PLANET_R, tangentBasis, upOf } from '../planet.js';
+
+function skyCanvas() {
+  const c = document.createElement('canvas');
+  c.width = 512;
+  c.height = 256;
+  const g = c.getContext('2d');
+  const grd = g.createLinearGradient(0, c.height, 0, 0);
+  grd.addColorStop(0, '#3a1816');
+  grd.addColorStop(0.28, '#241018');
+  grd.addColorStop(0.48, '#140e18');
+  grd.addColorStop(0.72, '#0a0812');
+  grd.addColorStop(1, '#06050c');
+  g.fillStyle = grd;
+  g.fillRect(0, 0, c.width, c.height);
+  g.globalAlpha = 0.18;
+  for (let i = 0; i < 18; i++) {
+    g.fillStyle = i % 2 ? '#2a1420' : '#1a1018';
+    g.beginPath();
+    g.ellipse(
+      (Math.sin(i * 1.7) * 0.5 + 0.5) * c.width,
+      c.height * (0.22 + (i % 5) * 0.08),
+      80 + (i % 4) * 30,
+      14 + (i % 3) * 8,
+      i * 0.4,
+      0,
+      Math.PI * 2
+    );
+    g.fill();
+  }
+  g.globalAlpha = 1;
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+function moonFaceTex() {
+  const c = document.createElement('canvas');
+  c.width = 256;
+  c.height = 256;
+  const g = c.getContext('2d');
+  g.clearRect(0, 0, 256, 256);
+  g.fillStyle = '#0c0808';
+  g.beginPath();
+  g.ellipse(88, 108, 22, 30, 0, 0, Math.PI * 2);
+  g.ellipse(168, 108, 22, 30, 0, 0, Math.PI * 2);
+  g.fill();
+  g.lineWidth = 7;
+  g.strokeStyle = '#0c0808';
+  g.beginPath();
+  g.arc(128, 148, 38, 0.2, Math.PI - 0.2);
+  g.stroke();
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+function watchingMoon(mats) {
+  const g = new THREE.Group();
+  const disk = new THREE.Mesh(new THREE.SphereGeometry(20, 28, 20), mats.moon);
+  const halo = new THREE.Mesh(
+    new THREE.SphereGeometry(24, 16, 12),
+    new THREE.MeshBasicMaterial({
+      color: 0xe8c890,
+      transparent: true,
+      opacity: 0.14,
+      depthWrite: false,
+      fog: false,
+    })
+  );
+  const face = new THREE.Mesh(
+    new THREE.CircleGeometry(16.5, 24),
+    new THREE.MeshBasicMaterial({
+      map: moonFaceTex(),
+      transparent: true,
+      depthWrite: false,
+      fog: false,
+    })
+  );
+  face.position.z = -19.6;
+  face.rotation.y = Math.PI;
+  g.add(disk, halo, face);
+  return g;
+}
 
 export function createSky(scene, mats) {
-  scene.background = new THREE.Color(0x2a1410);
-  scene.fog = new THREE.FogExp2(0x6a3828, 0.0036);
+  const _t = new THREE.Vector3();
+  const _u = new THREE.Vector3();
+  const _e = new THREE.Vector3();
+  const _n = new THREE.Vector3();
 
-  const hemi = new THREE.HemisphereLight(0xd47850, 0x3a1810, 0.88);
+  scene.background = new THREE.Color(0x07060f);
+  scene.fog = new THREE.FogExp2(0x1c1418, 0.0044);
+
+  const dome = new THREE.Mesh(
+    new THREE.SphereGeometry(1380, 32, 20),
+    new THREE.MeshBasicMaterial({ map: skyCanvas(), side: THREE.BackSide, fog: false, depthWrite: false })
+  );
+  scene.add(dome);
+
+  const hemi = new THREE.HemisphereLight(0x5a4868, 0x2a1814, 0.66);
   scene.add(hemi);
 
-  const moonLight = new THREE.DirectionalLight(0xffd0a0, 1.22);
+  const moon = watchingMoon(mats);
+  const manor = mapToPos(POI.manor.x, POI.manor.z);
+  const upM = upOf(manor);
+  const basis = tangentBasis(upM);
+  moon.position.copy(manor).addScaledVector(upM, 38).addScaledVector(basis.north, 18).addScaledVector(basis.east, -6);
+  function faceMoon(at) {
+    _t.copy(at);
+    _u.copy(moon.position).sub(_t);
+    const len = _u.length() || 1;
+    _u.multiplyScalar(1 / len);
+    upOf(at, _e);
+    _n.copy(_e).addScaledVector(_u, -_e.dot(_u));
+    if (_n.lengthSq() < 1e-4) {
+      const tb = tangentBasis(_e);
+      _n.copy(tb.east);
+    }
+    _n.normalize();
+    moon.up.copy(_n);
+    moon.lookAt(_t);
+  }
+  faceMoon(mapToPos(POI.spawn.x, POI.spawn.z));
+  scene.add(moon);
+
+  const moonLight = new THREE.DirectionalLight(0xe8c890, 0.82);
   moonLight.castShadow = true;
   moonLight.shadow.mapSize.set(2048, 2048);
   moonLight.shadow.camera.near = 10;
   moonLight.shadow.camera.far = 520;
-  moonLight.shadow.camera.left = -110;
-  moonLight.shadow.camera.right = 110;
-  moonLight.shadow.camera.top = 110;
-  moonLight.shadow.camera.bottom = -110;
+  moonLight.shadow.camera.left = -90;
+  moonLight.shadow.camera.right = 90;
+  moonLight.shadow.camera.top = 90;
+  moonLight.shadow.camera.bottom = -90;
   moonLight.shadow.bias = -0.0008;
+  moonLight.position.copy(moon.position);
   scene.add(moonLight);
   scene.add(moonLight.target);
 
-  const fill = new THREE.DirectionalLight(0x8a3040, 0.34);
-  fill.position.set(-80, 40, 60);
+  const fill = new THREE.DirectionalLight(0x4a6088, 0.16);
+  fill.position.copy(manor).addScaledVector(upM, 40).addScaledVector(basis.north, -50).addScaledVector(basis.east, 30);
   scene.add(fill);
 
-  const sun = new THREE.Mesh(
-    new THREE.SphereGeometry(3.2, 12, 10),
-    new THREE.MeshBasicMaterial({ color: 0xffc878, fog: false })
+  const under = new THREE.HemisphereLight(0x000000, 0x3a1018, 0.12);
+  scene.add(under);
+
+  const dusk = new THREE.Mesh(
+    new THREE.SphereGeometry(6.5, 12, 10),
+    new THREE.MeshBasicMaterial({ color: 0x8a3028, fog: false })
   );
-  sun.position.set(PLANET_R + 220, 90, -160);
-  scene.add(sun);
+  dusk.position.copy(manor).addScaledVector(upM, 18).addScaledVector(basis.north, -80).addScaledVector(basis.east, 40);
+  scene.add(dusk);
 
-  const phobos = new THREE.Mesh(new THREE.DodecahedronGeometry(5.4, 0), mats.sand);
-  phobos.position.set(PLANET_R + 95, 42, -70);
-  scene.add(phobos);
-
-  const deimos = new THREE.Mesh(new THREE.DodecahedronGeometry(2.4, 0), mats.stone);
-  deimos.position.set(-PLANET_R - 140, -28, 110);
+  const phobos = moon;
+  const deimos = new THREE.Mesh(new THREE.DodecahedronGeometry(3.2, 0), mats.stone);
+  deimos.position.copy(manor).addScaledVector(upM, 110).addScaledVector(basis.east, -90).addScaledVector(basis.north, -40);
   scene.add(deimos);
 
-  const moon = phobos;
-
   const starGeo = new THREE.BufferGeometry();
-  const n = 1400;
+  const n = 1800;
   const pos = new Float32Array(n * 3);
+  const col = new Float32Array(n * 3);
+  const starCols = [
+    [1, 0.92, 0.82],
+    [0.85, 0.9, 1],
+    [1, 0.72, 0.55],
+    [0.72, 0.85, 0.82],
+  ];
   for (let i = 0; i < n; i++) {
     const a = Math.random() * Math.PI * 2;
     const b = Math.acos(2 * Math.random() - 1);
-    const r = 1100;
+    const r = 1200;
     pos[i * 3] = r * Math.sin(b) * Math.cos(a);
     pos[i * 3 + 1] = r * Math.cos(b);
     pos[i * 3 + 2] = r * Math.sin(b) * Math.sin(a);
+    const c = starCols[i % starCols.length];
+    col[i * 3] = c[0];
+    col[i * 3 + 1] = c[1];
+    col[i * 3 + 2] = c[2];
   }
   starGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  starGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
   scene.add(
     new THREE.Points(
       starGeo,
-      new THREE.PointsMaterial({ color: 0xffe8d0, size: 0.85, fog: false, sizeAttenuation: true })
+      new THREE.PointsMaterial({
+        vertexColors: true,
+        size: 1.15,
+        fog: false,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.92,
+      })
     )
   );
 
   const sirius = new THREE.Mesh(
-    new THREE.SphereGeometry(1.15, 8, 6),
+    new THREE.SphereGeometry(1.55, 8, 6),
     new THREE.MeshBasicMaterial({ color: 0xd8e8ff, fog: false })
   );
-  sirius.position.set(PLANET_R + 180, 140, 90);
+  sirius.position.copy(manor).addScaledVector(upM, 95).addScaledVector(basis.east, 55).addScaledVector(basis.north, 20);
   scene.add(sirius);
 
-  const dustGeo = new THREE.BufferGeometry();
-  const dn = 420;
-  const dpos = new Float32Array(dn * 3);
-  for (let i = 0; i < dn; i++) {
+  const traces = new THREE.Group();
+  const goldLine = new THREE.LineBasicMaterial({
+    color: 0xc9a24a,
+    transparent: true,
+    opacity: 0.22,
+    fog: false,
+  });
+  function skyPoly(pts) {
+    const g = new THREE.BufferGeometry().setFromPoints(pts);
+    traces.add(new THREE.LineLoop(g, goldLine));
+  }
+  const skyUp = sirius.position.clone().normalize();
+  const skyE = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), skyUp).normalize();
+  const skyN = new THREE.Vector3().crossVectors(skyUp, skyE).normalize();
+  const hex = [];
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2;
+    hex.push(
+      skyUp
+        .clone()
+        .multiplyScalar(1180)
+        .addScaledVector(skyE, Math.cos(a) * 90)
+        .addScaledVector(skyN, Math.sin(a) * 90)
+    );
+  }
+  skyPoly(hex);
+  const vesica = [];
+  for (let i = 0; i < 20; i++) {
+    const a = (i / 20) * Math.PI * 2;
+    vesica.push(
+      skyUp
+        .clone()
+        .multiplyScalar(1180)
+        .addScaledVector(skyE, Math.cos(a) * 42 - 18)
+        .addScaledVector(skyN, Math.sin(a) * 42)
+    );
+  }
+  skyPoly(vesica);
+  scene.add(traces);
+
+  const moteN = 90;
+  const moteGeo = new THREE.BufferGeometry();
+  const motePos = new Float32Array(moteN * 3);
+  const moteOff = [];
+  for (let i = 0; i < moteN; i++) {
     const a = Math.random() * Math.PI * 2;
     const b = Math.acos(2 * Math.random() - 1);
-    const r = PLANET_R + 6 + Math.random() * 28;
-    dpos[i * 3] = r * Math.sin(b) * Math.cos(a);
-    dpos[i * 3 + 1] = r * Math.cos(b);
-    dpos[i * 3 + 2] = r * Math.sin(b) * Math.sin(a);
+    const r = 2.2 + Math.random() * 10;
+    moteOff.push(r * Math.sin(b) * Math.cos(a), r * Math.cos(b), r * Math.sin(b) * Math.sin(a));
   }
-  dustGeo.setAttribute('position', new THREE.BufferAttribute(dpos, 3));
-  const dust = new THREE.Points(
-    dustGeo,
-    new THREE.PointsMaterial({ color: 0xc48860, size: 0.55, transparent: true, opacity: 0.45, depthWrite: false })
+  moteGeo.setAttribute('position', new THREE.BufferAttribute(motePos, 3));
+  const motes = new THREE.Points(
+    moteGeo,
+    new THREE.PointsMaterial({
+      color: 0xc4a088,
+      size: 0.14,
+      transparent: true,
+      opacity: 0.42,
+      depthWrite: false,
+      sizeAttenuation: true,
+    })
   );
-  scene.add(dust);
+  scene.add(motes);
 
-  function tick(t) {
-    phobos.rotation.y = t * 0.04;
-    phobos.rotation.z = Math.sin(t * 0.07) * 0.15;
-    deimos.rotation.y = t * 0.06;
-    dust.rotation.y = t * 0.008;
+  function tick(t, target) {
+    deimos.rotation.y = t * 0.05;
+    sirius.scale.setScalar(1 + Math.sin(t * 2.2) * 0.12);
+    traces.rotation.y = t * 0.002;
+    scene.fog.density = 0.0042 + Math.sin(t * 0.13) * 0.0008;
+    const eclipse = Math.sin(t * 0.07);
+    moonLight.intensity = 0.82 * (eclipse > 0.91 ? 0.55 : 1);
+    if (target) {
+      faceMoon(target);
+      moon.rotateZ(Math.sin(t * 0.05) * 0.04);
+      moonLight.position.copy(moon.position);
+      moonLight.target.position.copy(_t);
+      moonLight.target.updateMatrixWorld();
+      upOf(_t, _u);
+      const tb = tangentBasis(_u);
+      _e.copy(tb.east);
+      _n.copy(tb.north);
+      const arr = motes.geometry.attributes.position.array;
+      for (let i = 0; i < moteN; i++) {
+        const ox = moteOff[i * 3];
+        const oy = moteOff[i * 3 + 1];
+        const oz = moteOff[i * 3 + 2];
+        const ca = Math.cos(t * 0.11 + i * 0.07);
+        const sa = Math.sin(t * 0.11 + i * 0.07);
+        const x = ox * ca - oz * sa;
+        const z = ox * sa + oz * ca;
+        arr[i * 3] = _t.x + _e.x * x + _u.x * (oy + Math.sin(t * 0.6 + i) * 0.25) + _n.x * z;
+        arr[i * 3 + 1] = _t.y + _e.y * x + _u.y * (oy + Math.sin(t * 0.6 + i) * 0.25) + _n.y * z;
+        arr[i * 3 + 2] = _t.z + _e.z * x + _u.z * (oy + Math.sin(t * 0.6 + i) * 0.25) + _n.z * z;
+      }
+      motes.geometry.attributes.position.needsUpdate = true;
+    }
   }
 
-  return { moonLight, moon, phobos, deimos, sun, tick };
+  return { moonLight, moon, phobos, deimos, sun: dusk, hemi, tick };
 }

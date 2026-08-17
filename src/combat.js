@@ -15,15 +15,16 @@ export function createCombat(scene, mats) {
 
   function spawnShadow(mx, mz) {
     const g = new THREE.Group();
-    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.16, 0.9, 3, 6), mats.shadow);
-    body.position.y = 0.7;
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 6, 5), mats.shadow);
-    head.position.y = 1.35;
-    head.scale.set(0.8, 1.35, 0.8);
-    const eL = new THREE.Mesh(new THREE.SphereGeometry(0.035, 5, 4), mats.eyeWhite);
-    eL.position.set(-0.06, 1.4, 0.12);
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.12, 1.25, 3, 6), mats.shadow);
+    body.position.y = 0.95;
+    body.scale.set(0.7, 1.35, 0.7);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.16, 6, 5), mats.shadow);
+    head.position.y = 1.85;
+    head.scale.set(0.7, 1.55, 0.75);
+    const eL = new THREE.Mesh(new THREE.SphereGeometry(0.04, 5, 4), mats.ember);
+    eL.position.set(-0.05, 1.92, 0.12);
     const eR = eL.clone();
-    eR.position.x = 0.06;
+    eR.position.x = 0.05;
     g.add(body, head, eL, eR);
     const pos = mapToPos(mx, mz);
     plantOnMesh(pos);
@@ -49,6 +50,10 @@ export function createCombat(scene, mats) {
   spots.push({ x: POI.hollow.x + 6, z: POI.hollow.z + 2 });
   spots.push({ x: POI.hollow.x - 5, z: POI.hollow.z - 4 });
   spots.push({ x: POI.hollow.x + 2, z: POI.hollow.z - 7 });
+  spots.push({ x: POI.spawn.x + 9, z: POI.spawn.z - 24 });
+  spots.push({ x: POI.mile.x + 5, z: POI.mile.z - 4 });
+  spots.push({ x: POI.spawn.x - 20, z: POI.spawn.z - 9 });
+  spots.push({ x: POI.plaza.x - 18, z: POI.plaza.z + 16 });
   for (const s of spots) spawnShadow(s.x, s.z);
 
   function fire(pawn) {
@@ -107,9 +112,10 @@ export function createCombat(scene, mats) {
       const dx = pawn.mx - s.mx;
       const dz = pawn.mz - s.mz;
       const d = Math.hypot(dx, dz);
-      if (d < 42 && d > 0.2) {
-        s.mx += (dx / d) * 2.35 * dt;
-        s.mz += (dz / d) * 2.35 * dt;
+      if (d < 48 && d > 0.2) {
+        const rush = d < 10 ? 3.1 : 2.15;
+        s.mx += (dx / d) * rush * dt;
+        s.mz += (dz / d) * rush * dt;
       }
       const pos = mapToPos(s.mx, s.mz);
       plantOnMesh(pos);
@@ -120,7 +126,9 @@ export function createCombat(scene, mats) {
       const { east, north } = tangentBasis(_up);
       const face = Math.atan2(_wish.dot(east), _wish.dot(north));
       orientOnPlanet(s.mesh, _up, face);
-      s.mesh.scale.setScalar(1 + s.hurt * 0.4);
+      const lean = d < 14 ? (1 - d / 14) * 0.28 : 0;
+      s.mesh.rotateX(-lean);
+      s.mesh.scale.set(1 + s.hurt * 0.4, 1.15 + s.hurt * 0.35 + lean * 0.4, 1 + s.hurt * 0.4);
       if (d < 1.05 && s.hitCd <= 0) {
         s.hitCd = 0.9;
         onHitPlayer(1);
@@ -128,5 +136,15 @@ export function createCombat(scene, mats) {
     }
   }
 
-  return { fire, tick, shadows };
+  function nearest(mx, mz) {
+    let best = 999;
+    for (const s of shadows) {
+      if (s.hp <= 0) continue;
+      const d = Math.hypot(mx - s.mx, mz - s.mz);
+      if (d < best) best = d;
+    }
+    return best;
+  }
+
+  return { fire, tick, shadows, nearest };
 }

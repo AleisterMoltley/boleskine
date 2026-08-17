@@ -17,20 +17,20 @@ export function createTerrain(scene, mats) {
   const pos = geo.attributes.position;
   const col = new Float32Array(pos.count * 3);
   const tmp = new THREE.Color();
-  const rustA = new THREE.Color(0x8a4030);
-  const rustB = new THREE.Color(0xc07040);
-  const rustC = new THREE.Color(0x6a3024);
-  const maria = new THREE.Color(0x3a2218);
-  const path = new THREE.Color(0x5a3424);
-  const dust = new THREE.Color(0x4a2a22);
-  const highland = new THREE.Color(0xb87858);
-  const ice = new THREE.Color(0xd4c8bc);
-  const ash = new THREE.Color(0x6a5848);
-  const umber = new THREE.Color(0x4a2818);
-  const earth = new THREE.Color(0x7a4a28);
-  const stone = new THREE.Color(0x7a6860);
-  const mauve = new THREE.Color(0x5a3848);
-  const ochre = new THREE.Color(0xa86838);
+  const rustA = new THREE.Color(0x7a3c28);
+  const rustB = new THREE.Color(0x9a5040);
+  const rustC = new THREE.Color(0x4a2018);
+  const maria = new THREE.Color(0x241410);
+  const path = new THREE.Color(0x6a4834);
+  const dust = new THREE.Color(0x3a2018);
+  const highland = new THREE.Color(0x9a6048);
+  const ice = new THREE.Color(0xb8a898);
+  const ash = new THREE.Color(0x5a4a40);
+  const umber = new THREE.Color(0x3a2018);
+  const earth = new THREE.Color(0x5a3824);
+  const stone = new THREE.Color(0x5a4c44);
+  const mauve = new THREE.Color(0x4a3040);
+  const ochre = new THREE.Color(0x8a5430);
 
   for (let i = 0; i < pos.count; i++) {
     const vx = pos.getX(i);
@@ -79,7 +79,7 @@ export function createTerrain(scene, mats) {
     } else if (h > 13.5) {
       tmp.copy(highland).lerp(ochre, grit * 0.3);
     } else {
-      tmp.set(0x9a4a32).lerp(rustC, mott * 0.45);
+      tmp.set(0x6a3024).lerp(rustC, mott * 0.45);
       tmp.lerp(earth, grit * 0.2);
     }
     col[i * 3] = tmp.r;

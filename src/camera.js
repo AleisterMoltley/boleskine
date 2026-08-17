@@ -76,13 +76,16 @@ export function createChaseCam(camera) {
       camera.up.copy(_up);
       camera.lookAt(_look);
     },
-    tick(p, dt, obstacles, looking) {
+    tick(p, dt, obstacles, looking, time = 0) {
       keepClear(p, obstacles, dt);
       if (looking) {
         camera.position.copy(_pos);
       } else {
         const k = 1 - Math.exp(-FEEL.camLag * dt);
         camera.position.lerp(_pos, k);
+        const { right } = walkFrame(_up, orbit.yaw);
+        camera.position.addScaledVector(right, Math.sin(time * 0.31) * 0.045);
+        camera.position.addScaledVector(_up, Math.sin(time * 0.23) * 0.028);
       }
       keepOutside(camera.position, 1.15);
       upOf(p.pos, _up);

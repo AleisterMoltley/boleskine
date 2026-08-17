@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { PLANET_COLS, POI, WORLD } from '../config.js';
 import { hash2 } from '../math.js';
-import { heightAt, isWater, pathWidth, scatter } from '../height.js';
+import { heightAt, isWater, pathWidth, scatter, PATHS } from '../height.js';
 import { mapToPos, orientOnPlanet, MAP_SCALE, tangentBasis, upOf } from '../planet.js';
 import {
   ankh,
@@ -105,7 +105,7 @@ export function lantern(mats, lit = false) {
   lamp.position.set(0.42, 2.05, 0);
   g.add(pole, arm, lamp);
   if (lit) {
-    const light = new THREE.PointLight(0xff8a40, 1.45, 11, 2);
+    const light = new THREE.PointLight(0xff9a48, 2.15, 16, 1.8);
     light.position.copy(lamp.position);
     g.add(light);
   }
@@ -1045,6 +1045,9 @@ export function populate(scene, mats, obstacles) {
     [POI.daath.x - 5, POI.daath.z + 3],
     [POI.manor.x + 8, POI.manor.z - 10],
     [POI.wood.x + 8, POI.wood.z + 6],
+    [POI.spawn.x - 1.5, POI.spawn.z + 11],
+    [(POI.spawn.x + POI.plaza.x) * 0.5, (POI.spawn.z + POI.plaza.z) * 0.5],
+    [POI.mile.x + 2.2, POI.mile.z + 1.2],
     [-20, -20],
     [40, -30],
     [-60, 10],
@@ -1053,7 +1056,7 @@ export function populate(scene, mats, obstacles) {
   ];
   for (const [x, z] of lamps) {
     if (isWater(x, z)) continue;
-    const L = plant(lantern(mats, lights.length < 6), x, z);
+    const L = plant(lantern(mats, lights.length < 12), x, z);
     lights.push(L);
     const y = heightAt(x, z);
     obstacles.cyl(x, z, y, y + 2.4, 0.12, 'lamp');
@@ -1301,41 +1304,41 @@ export function populate(scene, mats, obstacles) {
     const len = Math.hypot(dx, dz) || 1;
     const nx = -dz / len;
     const nz = dx / len;
-    const steps = Math.max(2, Math.floor(len / 3.4));
+    const steps = Math.max(2, Math.floor(len / 2.5));
     for (let s = 1; s < steps; s++) {
       const t = s / steps;
       for (const side of [-1, 1]) {
-        const off = 3.5 + hash2(s, side + 5) * 1.4;
+        const off = 3.2 + hash2(s, side + 5) * 1.5;
         const x = ax + dx * t + nx * side * off;
         const z = az + dz * t + nz * side * off;
         if (isWater(x, z) || pathWidth(x, z) < 2.1) continue;
+        if (s % 7 === 0 && side > 0) {
+          const L = plant(lantern(mats, lights.length < 14), x, z, t);
+          lights.push(L);
+          obstacles.cyl(x, z, heightAt(x, z), heightAt(x, z) + 2.4, 0.12, 'lamp');
+          continue;
+        }
         const k = Math.floor(hash2(s * 3 + side, Math.floor(ax + 11)) * 6);
-        if (k === 0) plant(pumpkin(mats, 0.85 + hash2(s, 2) * 0.4), x, z, t * 4);
+        if (k === 0) plant(pumpkin(mats, 1.05 + hash2(s, 2) * 0.45), x, z, t * 4);
         else if (k === 1) plant(barrel(mats), x, z, t);
         else if (k === 2) plant(crate(mats, hash2(s, 4)), x, z, t * 2);
-        else if (k === 3) plant(deadBush(mats, hash2(s, 6)), x, z, t);
-        else if (k === 4) {
+        else if (k === 3) {
+          const b = deadBush(mats, hash2(s, 6));
+          b.scale.setScalar(1.85);
+          plant(b, x, z, t);
+        } else if (k === 4) {
           plant(fencePost(mats), x, z, 0, 0.55);
           obstacles.cyl(x, z, heightAt(x, z), heightAt(x, z) + 1.1, 0.1, 'fence');
         } else {
-          const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.38 + hash2(s, 7) * 0.3, 0), mats.stone);
-          rock.scale.set(1.1, 0.55, 1);
-          plant(shadowize(rock), x, z, t, 0.1);
+          const rock = new THREE.Mesh(new THREE.DodecahedronGeometry(0.72 + hash2(s, 7) * 0.45, 0), mats.stone);
+          rock.scale.set(1.2, 0.62, 1.05);
+          plant(shadowize(rock), x, z, t, 0.18);
         }
       }
     }
   }
 
-  lineSides(POI.spawn.x, POI.spawn.z, POI.manor.x, POI.manor.z);
-  lineSides(POI.spawn.x, POI.spawn.z, POI.plaza.x, POI.plaza.z);
-  lineSides(POI.spawn.x, POI.spawn.z, POI.mile.x, POI.mile.z);
-  lineSides(POI.mile.x, POI.mile.z, POI.plaza.x, POI.plaza.z);
-  lineSides(POI.plaza.x, POI.plaza.z, POI.kirk.x, POI.kirk.z);
-  lineSides(POI.plaza.x, POI.plaza.z, POI.village.x, POI.village.z);
-  lineSides(POI.plaza.x, POI.plaza.z, POI.wood.x, POI.wood.z);
-  lineSides(POI.village.x, POI.village.z, POI.abbey.x, POI.abbey.z);
-  lineSides(POI.manor.x, POI.manor.z, POI.pier.x, POI.pier.z);
-  lineSides(POI.kirk.x, POI.kirk.z, POI.willow.x, POI.willow.z);
+  for (const p of PATHS) lineSides(p[0], p[1], p[2], p[3]);
 
   for (let k = 0; k < 16; k++) {
     const a = -2.3 + (k / 15) * 4.6;

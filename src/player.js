@@ -144,6 +144,10 @@ export function makeCrowley(mats) {
 
   hips.add(armL, armR, legL, legR);
 
+  const lamp = new THREE.PointLight(0xffc090, 1.25, 16, 1.5);
+  lamp.position.set(0, 1.05, 0.4);
+  root.add(lamp);
+
   root.traverse((o) => {
     if (o.isMesh) {
       o.castShadow = true;

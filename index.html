@@ -184,7 +184,7 @@
       align-items: center;
       justify-content: flex-end;
       padding-bottom: 10vh;
-      background: linear-gradient(to top, rgba(28, 10, 8, 0.9), transparent 58%);
+      background: linear-gradient(to top, rgba(8, 6, 14, 0.94), rgba(18, 8, 12, 0.35) 42%, transparent 64%);
       pointer-events: auto;
       cursor: pointer;
       text-align: center;
@@ -307,7 +307,16 @@
       position: fixed;
       inset: 0;
       pointer-events: none;
-      background: radial-gradient(ellipse at center, transparent 55%, rgba(7, 6, 15, 0.45) 100%);
+      background: radial-gradient(ellipse at center, transparent 50%, rgba(6, 4, 12, 0.5) 100%);
+    }
+    #dread {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 50% 18%, rgba(90, 36, 70, 0.16), transparent 48%),
+        radial-gradient(ellipse at center, transparent 50%, rgba(18, 6, 10, 0.55) 100%);
+      opacity: 0.22;
     }
     #grain {
       position: fixed;
@@ -374,6 +383,7 @@
     </div>
     <div id="ritual"><div class="track"><div id="ritualFill"></div></div></div>
     <div class="vignette"></div>
+    <div id="dread"></div>
     <div id="grain"></div>
     <div id="hurt"></div>
   </div>

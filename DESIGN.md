@@ -54,13 +54,13 @@ Session: 15–25 minutes to first ending. Relics are the whole unlock. Far-side 
 
 ## Art Direction & Palette
 
-- `#2a1410` rust night
-- `#e8d6a0` Phobos / lamps
+- `#07060f` night dome
+- `#e8d6a0` watching moon / lamps
 - `#8a1c28` sash / blood
 - `#c9a24a` gold / will
 - `#7ec8c0` rite teal
-- `#8a4030` highland rust
-- `#3a2218` maria
+- `#5a281c` night rust
+- `#1c100e` maria
 - Pale puppet skin, hollow eyes, nemes + leopard drape from Crowley’s 1910 ceremonial portrait (Wikimedia, public domain)
 
 World is code-built (toon meshes). Image-gen key art was blocked by moderation; style lives in geometry and light.
@@ -80,6 +80,8 @@ World is code-built (toon meshes). Image-gen key art was blocked by moderation; 
 - [x] Grant / gnosis: vesica, Daath gap, Lam niche, mauve threshold, veiled hall, 22 cells, Spare marks
 - [x] Denser world: clutter, ravens, moths, smoke, wrecks, more trees/rocks
 - [x] Path edges, grit texture, ten chapter-stones (most of the planet still empty)
+- [x] Night atmosphere: watching moon, fog, watchers, wisps
+- [x] Walkable moonlight + path lamps; trees/stones/menhirs on the continent; watchers on every walk
 - [ ] Aiwass as a voiced sky event
 - [ ] Horse / boat
 

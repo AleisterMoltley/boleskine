@@ -1,6 +1,6 @@
 export const PAL = {
   sky: 0x07060f,
-  fog: 0x12101c,
+  fog: 0x160e14,
   moon: 0xe8d6a0,
   moonStripe: 0xc4b48a,
   bone: 0xd8d0c0,

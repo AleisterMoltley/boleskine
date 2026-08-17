@@ -8,6 +8,7 @@ import { createPawn, resetPawn, stepPawn } from './controller.js';
 import { createChaseCam } from './camera.js';
 import { makeCrowley } from './player.js';
 import { createSky } from './world/sky.js';
+import { createDream } from './world/dream.js';
 import { createTerrain, rippleWater } from './world/terrain.js';
 import { populate } from './world/props.js';
 import { createNpcs } from './npcs.js';
@@ -39,12 +40,12 @@ export function boot(canvas) {
   renderer.setSize(innerWidth, innerHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.28;
+  renderer.toneMappingExposure = 1.12;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.25, 1600);
+  const camera = new THREE.PerspectiveCamera(56, innerWidth / innerHeight, 0.25, 1600);
   const _camFwd = new THREE.Vector3();
 
   const mats = createMaterials();
@@ -53,6 +54,7 @@ export function boot(canvas) {
   setLandMesh(terrain.mesh, terrain.widthSegs, terrain.heightSegs);
   const obstacles = createObstacles();
   const world = populate(scene, mats, obstacles);
+  const dream = createDream(scene, mats);
   const npcs = createNpcs(scene, mats);
   const relics = createRelics(scene, mats);
   const combat = createCombat(scene, mats);
@@ -277,7 +279,10 @@ export function boot(canvas) {
       npcs.tick(t);
       relics.tick(t);
       world.tick?.(t);
-      sky.tick?.(t);
+      sky.tick?.(t, look);
+      dream.tick?.(t, dt, pawn);
+      camera.fov = 56 + Math.sin(t * 0.11) * 1.1;
+      camera.updateProjectionMatrix();
       renderer.render(scene, camera);
       input.endFrame();
       return;
@@ -316,21 +321,28 @@ export function boot(canvas) {
       state.acc -= STEP;
     }
 
-    cam.tick(pawn, dt, obstacles, looking);
+    cam.tick(pawn, dt, obstacles, looking, state.time);
     crowley.tick(dt, pawn, state.castCd > 0.2);
     npcs.tick(state.time);
     relics.tick(state.time);
     world.tick?.(state.time);
-    sky.tick?.(state.time);
+    const dread = dream.tick?.(state.time, dt, pawn) ?? 0;
+    sky.tick?.(state.time, pawn.pos);
     combat.tick(dt, pawn, hurt);
     rippleWater(terrain.water, state.time);
+    const shadowNear = combat.nearest(pawn.mx, pawn.mz);
+    const threat = Math.max(dread, shadowNear < 22 ? 1 - shadowNear / 22 : 0);
+    audio.tick(dt, threat);
+    camera.fov = 56 + Math.sin(state.time * 0.11) * 1.1 - threat * 2.2;
+    camera.updateProjectionMatrix();
+    renderer.toneMappingExposure = 1.12 - threat * 0.06;
 
     {
       const np = mapToPos(8 + Math.sin(state.time * 0.15) * 10, 116 + Math.cos(state.time * 0.12) * 6, 0.3);
       world.ness.position.copy(np);
       upOf(np, _camFwd);
     }
-    sky.moonLight.position.copy(pawn.pos).add(sky.moon.position.clone().normalize().multiplyScalar(50));
+    sky.moonLight.position.copy(sky.moon.position);
     sky.moonLight.target.position.copy(pawn.pos);
     sky.moonLight.target.updateMatrixWorld();
     if (relics.placedCount() === 7) {
@@ -385,6 +397,8 @@ export function boot(canvas) {
 
     const fade = document.getElementById('hurt');
     if (fade) fade.style.opacity = String(state.hurtFlash * 0.55);
+    const dreadEl = document.getElementById('dread');
+    if (dreadEl) dreadEl.style.opacity = String(0.06 + threat * 0.16);
 
     const ritualBar = document.getElementById('ritual');
     if (ritualBar) {
@@ -422,8 +436,8 @@ export function boot(canvas) {
     const z = Number(qs.get('z'));
     requestAnimationFrame(() => {
       window.__boleskine.go(
-        Number.isFinite(x) ? x : POI.spawn.x,
-        Number.isFinite(z) ? z : POI.spawn.z,
+        qs.has('x') && Number.isFinite(x) ? x : POI.spawn.x,
+        qs.has('z') && Number.isFinite(z) ? z : POI.spawn.z,
         Number(qs.get('yaw') || Math.PI),
         Number(qs.get('pitch') || -0.1)
       );

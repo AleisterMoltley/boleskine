@@ -5,7 +5,7 @@ function toonRamp(steps = 4) {
   const data = new Uint8Array(steps * 4);
   for (let i = 0; i < steps; i++) {
     const t = i / (steps - 1);
-    const v = Math.round((Math.pow(t, 0.62) * 0.7 + 0.22) * 255);
+    const v = Math.round((Math.pow(t, 0.72) * 0.7 + 0.2) * 255);
     data[i * 4] = v;
     data[i * 4 + 1] = v;
     data[i * 4 + 2] = v;
@@ -73,10 +73,10 @@ export function createMaterials() {
   groundMap.repeat.set(28, 28);
 
   const rustGrit = canvasTex(256, 256, (g, w, h) => {
-    g.fillStyle = '#9a8070';
+    g.fillStyle = '#7a5848';
     g.fillRect(0, 0, w, h);
     for (let i = 0; i < 5000; i++) {
-      g.fillStyle = i % 2 ? '#7a5a48' : '#b49880';
+      g.fillStyle = i % 2 ? '#5a3c30' : '#9a7060';
       g.fillRect((Math.random() * w) | 0, (Math.random() * h) | 0, 1, 1);
     }
   });
@@ -142,5 +142,28 @@ export function createMaterials() {
     mauve: toon(PAL.mauve),
     mauveDeep: toon(PAL.mauveDeep),
     mauveGlow: new THREE.MeshBasicMaterial({ color: 0xb080a8 }),
+    watcher: new THREE.MeshBasicMaterial({
+      color: 0x3a3248,
+      fog: true,
+    }),
+    wispGold: new THREE.MeshBasicMaterial({
+      color: 0xe8c86a,
+      transparent: true,
+      opacity: 0.82,
+      depthWrite: false,
+    }),
+    wispTeal: new THREE.MeshBasicMaterial({
+      color: 0x7ec8c0,
+      transparent: true,
+      opacity: 0.78,
+      depthWrite: false,
+    }),
+    veil: new THREE.MeshBasicMaterial({
+      color: 0x6a4868,
+      transparent: true,
+      opacity: 0.34,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    }),
   };
 }

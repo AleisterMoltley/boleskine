@@ -42,3 +42,18 @@ Camera no longer recenters behind the walk. WASD is locked to camera yaw, not th
 
 Ask: does W go into the screen? Does the mouse orbit stay put while you walk?
 
+## 2026-08-17 — night, dream, threat
+
+Sky is a night dome, not rust noon. A faced moon sits over the house. Fog eats distance. Thin watchers stand off the paths and fade if you walk into them. Gold/teal wisps drift the main walks. Shadows are taller, with ember eyes, and a few wait on the way to the plaza.
+
+Ask:
+
+1. Does the first look feel like a night-dream, or still a bright orange ball?
+2. Is the moon readable behind the house?
+3. Do the tall figures threaten, or look like bugs?
+4. Too dark to walk, or just dark enough?
+
+## 2026-08-17 — the three lies fixed
+
+Moonlight lifted so rust and paths read. Watchers are 5m, grey-violet, gold eyes, planted on every walk and both sides of the house path. Continent dressed with instanced trees, menhirs, boulders, bushes — not 10cm grit. Far maria still thinner than the island.
+

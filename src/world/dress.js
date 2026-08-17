@@ -30,7 +30,7 @@ function plantMat(x, z, yOff, yaw, sx, sy, sz) {
 function pool(scene, geo, mat, max) {
   const mesh = new THREE.InstancedMesh(geo, mat, max);
   mesh.instanceMatrix.setUsage(THREE.StaticDrawUsage);
-  mesh.castShadow = false;
+  mesh.castShadow = true;
   mesh.receiveShadow = true;
   mesh.frustumCulled = false;
   mesh.count = 0;
@@ -193,7 +193,7 @@ function rustCamp(mats) {
   return g;
 }
 
-function ringDress(plant, mats, cx, cz, r0, r1, n, kind) {
+function ringDress(plant, mats, cx, cz, r0, r1, n) {
   for (let k = 0; k < n; k++) {
     const a = (k / n) * Math.PI * 2 + hash2(cx, k) * 0.2;
     const d = r0 + hash2(k, cz) * (r1 - r0);
@@ -201,17 +201,26 @@ function ringDress(plant, mats, cx, cz, r0, r1, n, kind) {
     const z = cz + Math.sin(a) * d;
     if (!dryLand(x, z) || walkRibbon(x, z)) continue;
     const rock = new THREE.Mesh(
-      new THREE.DodecahedronGeometry(0.32 + hash2(k, 4) * 0.28, 0),
+      new THREE.DodecahedronGeometry(0.7 + hash2(k, 4) * 0.55, 0),
       k % 2 ? mats.stone : mats.sand
     );
-    rock.scale.set(1.15, 0.5 + hash2(k, 2) * 0.2, 1);
-    plant(rock, x, z, a, 0.1);
+    rock.scale.set(1.2, 0.65 + hash2(k, 2) * 0.25, 1.05);
+    plant(rock, x, z, a, 0.22);
   }
 }
 
 export function dressWorld(scene, mats, obstacles, plant) {
-  const rock = pool(scene, new THREE.DodecahedronGeometry(0.38, 0), mats.stone, 700);
-  const rust = pool(scene, new THREE.DodecahedronGeometry(0.34, 0), mats.sand, 500);
+  const boulder = pool(scene, new THREE.DodecahedronGeometry(0.95, 0), mats.stone, 900);
+  const rust = pool(scene, new THREE.DodecahedronGeometry(0.9, 0), mats.sand, 700);
+  const menhir = pool(scene, new THREE.BoxGeometry(0.42, 2.15, 0.2), mats.stoneDark, 420);
+  const trunk = pool(scene, new THREE.CylinderGeometry(0.16, 0.26, 4.1, 6), mats.woodDeep, 520);
+  const crown = pool(scene, new THREE.SphereGeometry(1.15, 6, 5), mats.leaf, 520);
+  const bush = pool(scene, new THREE.SphereGeometry(0.62, 6, 5), mats.leaf, 480);
+
+  function treeAt(x, z, yaw, sc) {
+    push(trunk, x, z, 2.05, yaw, sc, sc, sc);
+    push(crown, x, z, 4.15, yaw, 1.35 * sc, 0.42 * sc, 1.15 * sc);
+  }
 
   for (const p of PATHS) {
     const dx = p[2] - p[0];
@@ -219,45 +228,96 @@ export function dressWorld(scene, mats, obstacles, plant) {
     const len = Math.hypot(dx, dz) || 1;
     const nx = -dz / len;
     const nz = dx / len;
-    const steps = Math.max(2, Math.floor(len / 4.2));
+    const steps = Math.max(2, Math.floor(len / 2.6));
     for (let s = 1; s < steps; s++) {
       const t = s / steps;
-      const side = s % 2 ? 1 : -1;
-      const off = 2.8 + hash2(s, Math.floor(p[0] + 20)) * 1.4;
-      const x = p[0] + dx * t + nx * side * off;
-      const z = p[1] + dz * t + nz * side * off;
-      if (!dryLand(x, z) || inCameraPit(x, z) || walkRibbon(x, z)) continue;
-      const sc = 0.85 + hash2(s, 3) * 0.55;
-      push(s % 3 === 0 ? rust : rock, x, z, 0.12, t * 5, sc, 0.55, sc);
+      for (const side of [-1, 1]) {
+        const off = 3.1 + hash2(s, side + 4) * 1.6;
+        const x = p[0] + dx * t + nx * side * off;
+        const z = p[1] + dz * t + nz * side * off;
+        if (!dryLand(x, z) || inCameraPit(x, z) || walkRibbon(x, z)) continue;
+        const kind = Math.floor(hash2(s * 5 + side, Math.floor(p[0] + 17)) * 5);
+        const yaw = t * 5 + side;
+        if (kind === 0) {
+          const sc = 1.05 + hash2(s, 3) * 0.45;
+          treeAt(x, z, yaw, sc);
+          obstacles.cyl(x, z, heightAt(x, z), heightAt(x, z) + 3.8, 0.28, 'tree');
+        } else if (kind === 1) {
+          push(menhir, x, z, 1.08, yaw, 1, 1 + hash2(s, 2) * 0.35, 1);
+          obstacles.cyl(x, z, heightAt(x, z), heightAt(x, z) + 2.1, 0.22, 'stone');
+        } else if (kind === 2) {
+          push(bush, x, z, 0.38, yaw, 1.1, 0.7, 1.1);
+        } else {
+          const sc = 0.95 + hash2(s, 7) * 0.55;
+          push(s % 2 ? rust : boulder, x, z, 0.28, yaw, sc, 0.62, sc);
+        }
+      }
     }
   }
 
   let n = 0;
   let guard = 0;
-  while (rock.count < 420 && guard < 8000) {
+  while (trunk.count < 360 && guard < 10000) {
     guard++;
     n++;
-    const x = (hash2(n, 3) - 0.5) * WORLD.islandR * 1.9;
-    const z = (hash2(n, 9) - 0.5) * WORLD.islandR * 1.9;
-    if (Math.hypot(x, z) > WORLD.islandR - 8) continue;
-    if (!dryLand(x, z) || walkRibbon(x, z) || inCameraPit(x, z) || tooCloseToHub(x, z, 8)) continue;
-    const sc = 0.9 + hash2(n, 6) * 0.7;
-    push(rock, x, z, 0.14, hash2(n, 8) * 6, sc, 0.5, sc);
+    const x = (hash2(n, 3) - 0.5) * WORLD.islandR * 1.85;
+    const z = (hash2(n, 9) - 0.5) * WORLD.islandR * 1.85;
+    if (Math.hypot(x, z) > WORLD.islandR - 10) continue;
+    if (!dryLand(x, z) || walkRibbon(x, z) || inCameraPit(x, z) || tooCloseToHub(x, z, 10)) continue;
+    const sc = 0.95 + hash2(n, 6) * 0.7;
+    treeAt(x, z, hash2(n, 8) * 6, sc);
   }
 
   n = 0;
   guard = 0;
-  while (rust.count < 280 && guard < 8000) {
+  while (boulder.count < 520 && guard < 9000) {
+    guard++;
+    n++;
+    const x = (hash2(n, 11) - 0.5) * WORLD.islandR * 1.9;
+    const z = (hash2(n, 14) - 0.5) * WORLD.islandR * 1.9;
+    if (Math.hypot(x, z) > WORLD.islandR - 6) continue;
+    if (!dryLand(x, z) || walkRibbon(x, z) || inCameraPit(x, z) || tooCloseToHub(x, z, 7)) continue;
+    const sc = 1.05 + hash2(n, 4) * 0.85;
+    push(boulder, x, z, 0.3, hash2(n, 2) * 6, sc, 0.58, sc);
+  }
+
+  n = 0;
+  guard = 0;
+  while (menhir.count < 280 && guard < 8000) {
+    guard++;
+    n++;
+    const x = (hash2(n, 21) - 0.5) * WORLD.islandR * 1.8;
+    const z = (hash2(n, 22) - 0.5) * WORLD.islandR * 1.8;
+    if (Math.hypot(x, z) > WORLD.islandR - 12) continue;
+    if (!dryLand(x, z) || walkRibbon(x, z) || inCameraPit(x, z) || tooCloseToHub(x, z, 9)) continue;
+    push(menhir, x, z, 1.08, hash2(n, 5) * 6, 1, 0.9 + hash2(n, 1) * 0.5, 1);
+  }
+
+  n = 0;
+  guard = 0;
+  while (bush.count < 360 && guard < 8000) {
+    guard++;
+    n++;
+    const x = (hash2(n, 31) - 0.5) * WORLD.islandR * 1.85;
+    const z = (hash2(n, 32) - 0.5) * WORLD.islandR * 1.85;
+    if (Math.hypot(x, z) > WORLD.islandR - 8) continue;
+    if (!dryLand(x, z) || walkRibbon(x, z) || inCameraPit(x, z)) continue;
+    push(bush, x, z, 0.36, hash2(n, 7) * 6, 1.15, 0.65, 1.15);
+  }
+
+  n = 0;
+  guard = 0;
+  while (rust.count < 380 && guard < 9000) {
     guard++;
     n++;
     const lat = (hash2(n, 13) - 0.5) * 2.0;
     const lon = hash2(n, 17) * Math.PI * 2 - Math.PI;
     const x = lon * MAP_SCALE;
     const z = lat * MAP_SCALE;
-    if (Math.hypot(x, z) < WORLD.islandR + 16) continue;
+    if (Math.hypot(x, z) < WORLD.islandR + 12) continue;
     if (Math.abs(lat) > 1.04) continue;
-    const sc = 0.95 + hash2(n, 2) * 0.8;
-    push(rust, x, z, 0.14, hash2(n, 5) * 6, sc, 0.48, sc);
+    const sc = 1.15 + hash2(n, 2) * 0.95;
+    push(rust, x, z, 0.32, hash2(n, 5) * 6, sc, 0.55, sc);
   }
 
   const sites = [
@@ -275,17 +335,21 @@ export function dressWorld(scene, mats, obstacles, plant) {
   for (const [mesh, x, z, rot, h, rad] of sites) {
     plant(mesh, x, z, rot);
     obstacles.cyl(x, z, heightAt(x, z), heightAt(x, z) + h, rad, 'desk');
-    ringDress(plant, mats, x, z, 2.4, 5.2, 10, 'site');
+    ringDress(plant, mats, x, z, 2.4, 5.2, 10);
   }
 
-  ringDress(plant, mats, POI.spawn.x, POI.spawn.z, 7.5, 13, 18, 'spawn');
-  ringDress(plant, mats, POI.plaza.x, POI.plaza.z, 10, 16, 20, 'plaza');
-  ringDress(plant, mats, POI.manor.x, POI.manor.z, 12, 18, 16, 'manor');
-  ringDress(plant, mats, POI.village.x, POI.village.z, 10, 18, 20, 'village');
-  ringDress(plant, mats, POI.kirk.x, POI.kirk.z, 9, 16, 16, 'kirk');
-  ringDress(plant, mats, POI.wood.x, POI.wood.z, 8, 20, 18, 'wood');
-  ringDress(plant, mats, POI.abbey.x, POI.abbey.z, 10, 16, 14, 'abbey');
+  ringDress(plant, mats, POI.spawn.x, POI.spawn.z, 7.5, 13, 18);
+  ringDress(plant, mats, POI.plaza.x, POI.plaza.z, 10, 16, 20);
+  ringDress(plant, mats, POI.manor.x, POI.manor.z, 12, 18, 16);
+  ringDress(plant, mats, POI.village.x, POI.village.z, 10, 18, 20);
+  ringDress(plant, mats, POI.kirk.x, POI.kirk.z, 9, 16, 16);
+  ringDress(plant, mats, POI.wood.x, POI.wood.z, 8, 20, 22);
+  ringDress(plant, mats, POI.abbey.x, POI.abbey.z, 10, 16, 14);
 
-  rock.instanceMatrix.needsUpdate = true;
+  boulder.instanceMatrix.needsUpdate = true;
   rust.instanceMatrix.needsUpdate = true;
+  menhir.instanceMatrix.needsUpdate = true;
+  trunk.instanceMatrix.needsUpdate = true;
+  crown.instanceMatrix.needsUpdate = true;
+  bush.instanceMatrix.needsUpdate = true;
 }
