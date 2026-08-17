@@ -3,9 +3,10 @@ import { FEEL } from './config.js';
 import { approach, rotateToward } from './math.js';
 import { collidePlayer } from './obstacles.js';
 import {
-  groundRAt,
-  isWaterPos,
+  isDustPos,
   mapToPos,
+  meshRadius,
+  plantOnMesh,
   posToMap,
   tangentBasis,
   upOf,
@@ -18,7 +19,8 @@ const _fwd = new THREE.Vector3();
 const _right = new THREE.Vector3();
 
 export function createPawn(mx, mz) {
-  const pos = mapToPos(mx, mz, 0.04);
+  const pos = mapToPos(mx, mz, 0);
+  plantOnMesh(pos);
   return {
     pos,
     vel: new THREE.Vector3(),
@@ -28,6 +30,7 @@ export function createPawn(mx, mz) {
     facing: Math.PI,
     grounded: true,
     swimming: false,
+    dust: false,
     coyote: 0,
     jumpBuf: 0,
     speed: 0,
@@ -46,15 +49,18 @@ export function createPawn(mx, mz) {
 }
 
 export function resetPawn(p, mx, mz, obstacles) {
-  p.pos.copy(mapToPos(mx, mz, 0.05));
+  p.pos.copy(mapToPos(mx, mz, 0));
+  plantOnMesh(p.pos);
   p.vel.set(0, 0, 0);
   const m = posToMap(p.pos);
   p.mx = m.x;
   p.mz = m.z;
   p.grounded = true;
   p.swimming = false;
+  p.dust = isDustPos(p.pos);
   if (obstacles) {
     for (let i = 0; i < 4; i++) collidePlayer(p, obstacles);
+    plantOnMesh(p.pos);
   }
 }
 
@@ -63,11 +69,11 @@ function snapSurf(p) {
   const ux = p.pos.x / len;
   const uy = p.pos.y / len;
   const uz = p.pos.z / len;
-  const surf = groundRAt(p.pos);
+  const surf = meshRadius(p.pos);
   let height = len - surf;
   const vRad = p.vel.x * ux + p.vel.y * uy + p.vel.z * uz;
   let grounded = false;
-  if (height <= 0.14 && vRad <= 0.85) {
+  if (height <= 1.25 && vRad <= 3.4) {
     height = 0;
     p.vel.x -= ux * vRad;
     p.vel.y -= uy * vRad;
@@ -100,9 +106,12 @@ export function stepPawn(p, dt, input, camFwd, obstacles) {
   const wishLen = _wish.length();
   if (wishLen > 1) _wish.multiplyScalar(1 / wishLen);
 
-  const sprint = input.state.sprint && p.grounded && !p.swimming && wishLen > 0.08;
+  const dust = isDustPos(p.pos);
+  p.dust = dust;
+  p.swimming = false;
+  const sprint = input.state.sprint && p.grounded && !dust && wishLen > 0.08;
   p.sprinting = sprint;
-  const cap = p.swimming ? FEEL.swim : sprint ? FEEL.run : FEEL.walk;
+  const cap = dust ? FEEL.walk * 0.58 : sprint ? FEEL.run : FEEL.walk;
 
   if (input.state.jumpDown) p.jumpBuf = FEEL.jumpBuf;
   else p.jumpBuf = Math.max(0, p.jumpBuf - dt);
@@ -111,7 +120,7 @@ export function stepPawn(p, dt, input, camFwd, obstacles) {
 
   wrapTangent(p.vel, _up);
   const spd = p.vel.length();
-  if (p.grounded || p.swimming) {
+  if (p.grounded) {
     if (wishLen > 0.08) {
       _wish.normalize();
       const target = cap * Math.min(1, wishLen);
@@ -132,7 +141,7 @@ export function stepPawn(p, dt, input, camFwd, obstacles) {
   const vRad = p.vel.dot(_up);
   wrapTangent(p.vel, _up);
 
-  if (p.jumpBuf > 0 && p.coyote > 0 && !p.swimming) {
+  if (p.jumpBuf > 0 && p.coyote > 0) {
     p.vel.addScaledVector(_up, FEEL.jump);
     p.grounded = false;
     p.coyote = 0;
@@ -149,16 +158,10 @@ export function stepPawn(p, dt, input, camFwd, obstacles) {
   for (let s = 0; s < steps; s++) {
     p.pos.addScaledVector(p.vel, hdt);
     collidePlayer(p, obstacles);
-    const snap = snapSurf(p);
+    snapSurf(p);
     collidePlayer(p, obstacles);
     snapSurf(p);
-
-    p.swimming = isWaterPos(p.pos) && snap.height < 0.7;
-    if (p.swimming) {
-      wrapTangent(p.vel, _up);
-      p.vel.multiplyScalar(0.9);
-      if (input.state.jump) p.vel.addScaledVector(_up, 16 * hdt);
-    }
+    p.dust = isDustPos(p.pos);
   }
 
   if (!Number.isFinite(p.pos.x)) resetPawn(p, 0, 0, obstacles);

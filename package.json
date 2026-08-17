@@ -2,7 +2,7 @@
   "name": "boleskine",
   "private": true,
   "version": "1.0.0",
-  "description": "Boleskine — play Aleister Crowley in a Tim Burton nightscape around Loch Ness.",
+  "description": "Boleskine — play Aleister Crowley on a Tim Burton Mars.",
   "type": "module",
   "scripts": {
     "dev": "vite",

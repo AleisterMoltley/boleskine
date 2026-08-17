@@ -196,6 +196,45 @@ export function createNpcs(scene, mats) {
     ]
   );
 
+  const astro = body(mats, mats.skinShadow, mats.sand, 1.02);
+  add(
+    'astronomer',
+    'Der Beobachter',
+    POI.orrery.x + 3.2,
+    POI.orrery.z - 2.4,
+    astro,
+    [
+      'Die Linien sind älter als Lowell. Er hat sie nur benannt. Wer sie zog, schweigt.',
+      'Fünf Eisen im Westen. Ein Gesicht im Osten, das keines ist, bis die Stunde stimmt.',
+    ]
+  );
+
+  const ward2 = body(mats, mats.skinShadow, mats.iron, 1.08);
+  add(
+    'ironguard',
+    'Ein stiller Grad',
+    POI.iron.x + 3.4,
+    POI.iron.z + 2.2,
+    ward2,
+    [
+      'Fünf. Nicht sechs. Nicht sieben. Hier zählt nur die Härte.',
+      'Eisen gehört zum fünften. Der Rest ist Entsprechung. Geh, wenn du nicht zählen willst.',
+    ]
+  );
+
+  const watcher = body(mats, mats.sand, mats.stone, 1.2);
+  add(
+    'watcher',
+    'Die Stimme im Hang',
+    POI.cydonia.x + 8,
+    POI.cydonia.z - 6,
+    watcher,
+    [
+      'Es ist ein Hügel. Bis du stehen bleibst. Dann ist es ein Blick.',
+      'Drei Pyramiden, eine Stirn. Niemand hat sie gesetzt. Jemand hat sie gelassen.',
+    ]
+  );
+
   const perch = mapToPos(POI.plaza.x + 3.5, POI.plaza.z - 6, 1.6);
   raven.position.copy(perch);
   const ravenNpc = list.find((n) => n.id === 'aiwass');

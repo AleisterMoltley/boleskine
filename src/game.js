@@ -16,12 +16,12 @@ import { createRelics } from './relics.js';
 import { createAudio } from './audio.js';
 import { createHud } from './hud.js';
 import { dist2 } from './math.js';
-import { mapToPos, tangentBasis, upOf } from './planet.js';
+import { mapToPos, setLandMesh, tangentBasis, upOf } from './planet.js';
 const STEP = 1 / 60;
 
 function placeName(x, z) {
-  let best = 'Die Nachtkugel';
-  let bd = 38 * 38;
+  let best = 'Mars';
+  let bd = 52 * 52;
   for (const k of Object.keys(POI)) {
     const p = POI[k];
     const d = dist2(x, z, p.x, p.z);
@@ -44,12 +44,13 @@ export function boot(canvas) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.2, 320);
+  const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.25, 1600);
   const _camFwd = new THREE.Vector3();
 
   const mats = createMaterials();
   const sky = createSky(scene, mats);
   const terrain = createTerrain(scene, mats);
+  setLandMesh(terrain.mesh, terrain.widthSegs, terrain.heightSegs);
   const obstacles = createObstacles();
   const world = populate(scene, mats, obstacles);
   const npcs = createNpcs(scene, mats);
@@ -189,15 +190,19 @@ export function boot(canvas) {
     const w = c.width;
     const h = c.height;
     g.clearRect(0, 0, w, h);
-    g.fillStyle = '#0c0a12';
+    g.fillStyle = '#1a0e0a';
     g.fillRect(0, 0, w, h);
     const sc = w / WORLD.size;
     const to = (x, z) => [w * 0.5 + x * sc, h * 0.5 + z * sc];
-    g.fillStyle = '#1a2430';
+    g.fillStyle = '#5a281c';
+    g.beginPath();
+    g.arc(w * 0.5, h * 0.5, (WORLD.size * 0.46) * sc, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = '#8a4030';
     g.beginPath();
     g.arc(w * 0.5, h * 0.5, WORLD.islandR * sc, 0, Math.PI * 2);
     g.fill();
-    g.fillStyle = '#0c1820';
+    g.fillStyle = '#3a1c14';
     g.fillRect(w * 0.5 - 70 * sc, h * 0.5 + 70 * sc, 140 * sc, 80 * sc);
     g.fillStyle = '#c9a24a';
     for (const k of Object.keys(POI)) {
@@ -263,9 +268,9 @@ export function boot(canvas) {
       const { east, north } = tangentBasis(up);
       camera.position
         .copy(look)
-        .addScaledVector(up, 16)
-        .addScaledVector(east, Math.sin(t * 0.12) * 22)
-        .addScaledVector(north, 14 + Math.cos(t * 0.12) * 8);
+        .addScaledVector(up, 26)
+        .addScaledVector(east, Math.sin(t * 0.1) * 34)
+        .addScaledVector(north, 18 + Math.cos(t * 0.1) * 12);
       camera.up.copy(up);
       camera.lookAt(look);
       rippleWater(terrain.water, t);
@@ -409,5 +414,19 @@ export function boot(canvas) {
     pawn,
     poi: POI,
   };
+  const qs = new URLSearchParams(location.search);
+  if (qs.get('play')) {
+    const x = Number(qs.get('x'));
+    const z = Number(qs.get('z'));
+    requestAnimationFrame(() => {
+      window.__boleskine.go(
+        Number.isFinite(x) ? x : POI.spawn.x,
+        Number.isFinite(z) ? z : POI.spawn.z,
+        Number(qs.get('yaw') || Math.PI),
+        Number(qs.get('pitch') || -0.1)
+      );
+      document.getElementById('lockHint')?.classList.remove('show');
+    });
+  }
   return { start };
 }

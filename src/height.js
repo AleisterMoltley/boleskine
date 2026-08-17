@@ -37,6 +37,12 @@ const FLATS = [
   { x: POI.hollow.x, z: POI.hollow.z, r: 9, h: 3.8 },
   { x: POI.press.x, z: POI.press.z, r: 6, h: 6.6 },
   { x: POI.nether.x, z: POI.nether.z, r: 5, h: 2.15 },
+  { x: POI.iron.x, z: POI.iron.z, r: 10, h: 6.4 },
+  { x: POI.crater.x, z: POI.crater.z, r: 14, h: 4.2 },
+  { x: POI.cydonia.x, z: POI.cydonia.z, r: 16, h: 8.8 },
+  { x: POI.polar.x, z: POI.polar.z, r: 10, h: 7.0 },
+  { x: POI.orrery.x, z: POI.orrery.z, r: 8, h: 5.4 },
+  { x: POI.seal.x, z: POI.seal.z, r: 8, h: 6.2 },
 ];
 
 function bump(x, z, cx, cz, r, h) {

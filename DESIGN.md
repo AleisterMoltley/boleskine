@@ -1,30 +1,30 @@
 # GAME DESIGN — Boleskine
 
 **Status:** Playable vertical slice  
-**Tech:** Three.js r170 + Vite · spherical planet (Mosspeak-style)  
-**Art Style:** Stop-motion nightscape, Tim Burton / *Nightmare Before Christmas* — elongated puppets, spiral hills, moon-stripe lighting, toon ramps  
+**Tech:** Three.js r170 + Vite · walkable Mars sphere (Mosspeak-style)  
+**Art Style:** Stop-motion nightscape, Tim Burton / *Nightmare Before Christmas* — elongated puppets, rust highlands, toon ramps  
 **Target Platforms:** Web  
-**Last Updated:** 2026-08-16
+**Last Updated:** 2026-08-17
 
 ---
 
 ## One-Sentence Pitch
 
-You are Aleister Crowley on a night island stitched from his life: Boleskine, the Cairo hours, Cefalù, the desert aethyrs. Walk, remember, finish the Working.
+You are Aleister Crowley on Mars: Boleskine and the rest of his life sit on a rust continent; canals, iron, and a watching hill hold the rest.
 
 ## Core Loop
 
-1. Walk the night island (manor, kirk, wood, village, abbey, loch).
+1. Walk the red planet (manor, kirk, wood, village, abbey, dust basin, far-side sites).
 2. Talk, pick up a relic, banish a shadow if it closes in.
 3. Place relics on the plaza pedestals.
 4. Hold the rite when all seven stand.
 
 ## Pillars
 
-- **Movement first:** capsule controller, coyote jump, slope slide, no falling through the height field.
-- **Collision is the height function:** mesh and pawn share one authored `heightAt`.
-- **Readable occult, not gore:** Thelema names, Burton silhouettes, pumpkin lamps.
-- **Dense small open world:** one island you can cross in a few minutes, landmarks always up.
+- **Movement first:** capsule controller, coyote jump, radial gravity, feet planted on the land mesh.
+- **Collision is the mesh:** pawn snaps to a ray against the displaced sphere, not the mathematical radius.
+- **Readable occult, not gore:** lodge geometry, correspondences, no billboard slogans.
+- **A planet you can walk:** larger Mars, continent plus wilderness.
 
 ## Controls
 
@@ -42,24 +42,25 @@ You are Aleister Crowley on a night island stitched from his life: Boleskine, th
 ## Key Mechanics
 
 - [x] Third-person Crowley, pointer-lock look
-- [x] Height-field ground + cylinder/box obstacles + pier platform
+- [x] Spherical Mars + mesh foot-plant + cylinder/box obstacles
 - [x] Seven relics + pedestals + rite ending
 - [x] NPCs with lines
 - [x] Shadows that chase; shrine respawn
-- [x] Swim on the loch (no world-edge void)
+- [x] Dust maria (slow walk, no swim)
 
 ## Progression
 
-Session: 15–25 minutes to first ending. Relics are the whole unlock.
+Session: 15–25 minutes to first ending. Relics are the whole unlock. Far-side sites add journal pages.
 
 ## Art Direction & Palette
 
-- `#07060f` sky / ink
-- `#e8d6a0` moon
+- `#2a1410` rust night
+- `#e8d6a0` Phobos / lamps
 - `#8a1c28` sash / blood
 - `#c9a24a` gold / will
 - `#7ec8c0` rite teal
-- `#243028` grass
+- `#8a4030` highland rust
+- `#3a2218` maria
 - Pale puppet skin, hollow eyes, nemes + leopard drape from Crowley’s 1910 ceremonial portrait (Wikimedia, public domain)
 
 World is code-built (toon meshes). Image-gen key art was blocked by moderation; style lives in geometry and light.
@@ -75,6 +76,7 @@ World is code-built (toon meshes). Image-gen key art was blocked by moderation; 
 - [x] Confessions journal from place-memories
 - [x] Cairo hours, vault, chess, cairn, press, Hastings chair, hollow
 - [x] Leah, Bennett, Neuburg, Eckenstein, the poet
+- [x] Mars wrap: iron circle, crater, Cydonia, polar shrine, canal orrery, red seal
 - [ ] Aiwass as a voiced sky event
 - [ ] Horse / boat
 

@@ -72,14 +72,9 @@ export function createMaterials() {
   });
   groundMap.repeat.set(28, 28);
 
-  const waterMat = new THREE.MeshStandardMaterial({
-    color: 0x0c2230,
-    roughness: 0.28,
-    metalness: 0.15,
-    transparent: true,
-    opacity: 0.86,
-    emissive: 0x061018,
-    emissiveIntensity: 0.35,
+  const waterMat = new THREE.MeshToonMaterial({
+    color: 0x2a1814,
+    gradientMap: ramp,
   });
 
   return {

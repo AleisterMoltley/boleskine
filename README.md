@@ -1,6 +1,6 @@
 # BOLESKINE
 
-Open-world Three.js nightscape. You play **Aleister Crowley** on a Tim Burton / *Nightmare Before Christmas* island around Boleskine House.
+Open-world Three.js nightscape. You play **Aleister Crowley** on a Tim Burton / *Nightmare Before Christmas* Mars — Boleskine House on a rust continent, canals and watchers on the far side.
 
 Do what thou wilt. Then put the seven tools back.
 

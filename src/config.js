@@ -18,11 +18,11 @@ export const PAL = {
   stone: 0x4a4a54,
   stoneDark: 0x2c2c34,
   stoneLite: 0x6a6a74,
-  grass: 0x243028,
-  grassDeep: 0x161c18,
-  dirt: 0x3a3024,
-  sand: 0x5a5040,
-  water: 0x0c1820,
+  grass: 0x5a3024,
+  grassDeep: 0x3a1c14,
+  dirt: 0x6a3828,
+  sand: 0x8a5840,
+  water: 0x2a1814,
   waterLite: 0x1a3040,
   pumpkin: 0xd4782a,
   pumpkinDeep: 0x8a3a10,
@@ -36,7 +36,7 @@ export const PAL = {
 };
 
 export const WORLD = {
-  size: 400,
+  size: 720,
   islandR: 168,
   playR: 178,
   waterY: 1.32,
@@ -66,8 +66,8 @@ export const FEEL = {
   padDead: 0.2,
   pitchMin: -0.48,
   pitchMax: 0.38,
-  camDist: 8.7,
-  camHeight: 2.48,
+  camDist: 9.4,
+  camHeight: 2.52,
   camLook: 1.12,
   camShoulder: 0.62,
   camLag: 16,
@@ -85,7 +85,7 @@ export const POI = {
   wood: { x: -98.0, z: -14.0, name: 'Verdrehter Wald' },
   village: { x: 10.0, z: -90.0, name: 'Kürbisdorf' },
   abbey: { x: -80.0, z: -94.0, name: 'Die Abtei' },
-  pier: { x: -20.0, z: 96.0, name: 'Ness-Steg' },
+  pier: { x: -20.0, z: 96.0, name: 'Der Staubkai' },
   spiral: { x: 98.0, z: -50.0, name: 'Spiralhügel' },
   willow: { x: 74.0, z: 46.0, name: 'Trauerweide' },
   cairo: { x: -16.0, z: 44.0, name: 'Das Fremde Zimmer' },
@@ -94,6 +94,12 @@ export const POI = {
   hollow: { x: -68.0, z: 10.0, name: 'Die Senke' },
   press: { x: 26.0, z: -70.0, name: 'Die Presse' },
   nether: { x: 6.0, z: 86.0, name: 'Der Stuhl' },
+  iron: { x: -260.0, z: -53.0, name: 'Der Eisenkreis' },
+  crater: { x: 319.0, z: -73.0, name: 'Der Opferkrater' },
+  cydonia: { x: 283.0, z: 41.0, name: 'Die Wächter' },
+  polar: { x: 212.0, z: 142.0, name: 'Die Weiße Kappe' },
+  orrery: { x: 236.0, z: 59.0, name: 'Die Uhr der Bahnen' },
+  seal: { x: -218.0, z: 65.0, name: 'Das rote Siegel' },
 };
 
 export const PLANET_COLS = [0x2a2438, 0x3a5088, 0x8a2430, 0xc9a24a, 0x3a6840, 0xb87838, 0xb8b8c8];
@@ -118,7 +124,7 @@ export const RELICS = [
   {
     id: 'chalice',
     name: 'Kelch',
-    hint: 'Am Ende des Stegs über dem Loch.',
+    hint: 'Am Ende des Stegs über der dunklen Ebene.',
     x: -20.0,
     z: 102.5,
     color: 0xc9a24a,

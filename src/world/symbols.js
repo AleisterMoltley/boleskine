@@ -469,6 +469,68 @@ export function hastingsChair(mats) {
   return g;
 }
 
+export function pentagonPavement(r, mats) {
+  const g = new THREE.Group();
+  const n = 5;
+  for (let i = 0; i < n; i++) {
+    const a0 = -Math.PI / 2 + (i / n) * Math.PI * 2;
+    const a1 = -Math.PI / 2 + ((i + 1) / n) * Math.PI * 2;
+    const slab = new THREE.Mesh(new THREE.BoxGeometry(r * 0.72, 0.1, r * 0.38), i % 2 ? mats.iron : mats.goldDeep);
+    slab.position.set(
+      (Math.cos(a0) + Math.cos(a1)) * 0.28 * r,
+      0.05,
+      (Math.sin(a0) + Math.sin(a1)) * 0.28 * r
+    );
+    slab.rotation.y = Math.atan2(Math.cos(a0) + Math.cos(a1), Math.sin(a0) + Math.sin(a1));
+    g.add(slab);
+  }
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.16, r * 0.18, 0.07, 5), mats.goldDeep);
+  hub.position.y = 0.04;
+  g.add(hub);
+  return g;
+}
+
+export function eyeOfHorus(mats, s = 1) {
+  const g = new THREE.Group();
+  const lid = new THREE.Mesh(new THREE.TorusGeometry(0.22 * s, 0.03 * s, 6, 14, Math.PI), mats.gold);
+  lid.rotation.x = Math.PI;
+  const eye = new THREE.Mesh(new THREE.SphereGeometry(0.08 * s, 8, 6), mats.eyeWhite);
+  eye.scale.set(1.5, 0.7, 0.45);
+  const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.035 * s, 6, 5), mats.eyeHole);
+  pupil.position.z = 0.03 * s;
+  const mark = new THREE.Mesh(new THREE.BoxGeometry(0.06 * s, 0.22 * s, 0.03 * s), mats.gold);
+  mark.position.set(0.18 * s, -0.16 * s, 0);
+  mark.rotation.z = 0.4;
+  const curl = new THREE.Mesh(new THREE.TorusGeometry(0.08 * s, 0.018 * s, 5, 10, Math.PI), mats.gold);
+  curl.position.set(0.22 * s, -0.28 * s, 0);
+  curl.rotation.z = -0.6;
+  g.add(lid, eye, pupil, mark, curl);
+  return g;
+}
+
+export function orreryRings(mats) {
+  const g = new THREE.Group();
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.16, 1.15, 8), mats.iron);
+  stem.position.y = 0.55;
+  g.add(stem);
+  const rings = [0.7, 1.05, 1.45];
+  for (let i = 0; i < rings.length; i++) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(rings[i], 0.025, 6, 24), i === 1 ? mats.gold : mats.iron);
+    ring.rotation.x = Math.PI / 2;
+    ring.rotation.z = 0.18 * i;
+    ring.position.y = 1.25;
+    g.add(ring);
+    const bead = new THREE.Mesh(new THREE.SphereGeometry(0.07 + i * 0.02, 8, 6), i === 1 ? mats.sash : mats.sand);
+    const a = i * 1.7;
+    bead.position.set(Math.cos(a) * rings[i], 1.25, Math.sin(a) * rings[i]);
+    g.add(bead);
+  }
+  const lamp = new THREE.PointLight(0xffb060, 0.85, 10, 2);
+  lamp.position.set(0, 1.4, 0);
+  g.add(lamp);
+  return g;
+}
+
 export function hoodedAdept(mats) {
   const g = new THREE.Group();
   const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.42, 1.35, 8), mats.robe);

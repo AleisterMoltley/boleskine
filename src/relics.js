@@ -1,11 +1,13 @@
 import { POI, RELICS, SHRINES } from './config.js';
-import { mapToPos, orientOnPlanet, upOf } from './planet.js';
+import { mapToPos, orientOnPlanet, plantOnMesh, upOf } from './planet.js';
 import { relicMesh } from './world/props.js';
 
 export function createRelics(scene, mats) {
   const items = RELICS.map((r) => {
     const mesh = relicMesh(mats, r.id);
-    const p = mapToPos(r.x, r.z, 1.12);
+    const p = mapToPos(r.x, r.z, 0);
+    plantOnMesh(p);
+    p.addScaledVector(upOf(p), 1.12);
     mesh.position.copy(p);
     orientOnPlanet(mesh, upOf(p), 0);
     scene.add(mesh);
@@ -56,7 +58,9 @@ export function createRelics(scene, mats) {
     place(it, ped) {
       it.placed = true;
       it.mesh.visible = true;
-      const p = mapToPos(ped.x, ped.z, 0.72);
+      const p = mapToPos(ped.x, ped.z, 0);
+      plantOnMesh(p);
+      p.addScaledVector(upOf(p), 0.72);
       it.mesh.position.copy(p);
       it.base.copy(p);
       orientOnPlanet(it.mesh, upOf(p), 0);

@@ -2,21 +2,26 @@ import * as THREE from 'three';
 import { PLANET_COLS, POI, WORLD } from '../config.js';
 import { hash2 } from '../math.js';
 import { heightAt, isWater, pathWidth, scatter } from '../height.js';
-import { mapToPos, orientOnPlanet, PLANET_R, upOf } from '../planet.js';
+import { mapToPos, orientOnPlanet, MAP_SCALE, upOf } from '../planet.js';
 import {
+  ankh,
   ashlars,
   cairn,
   chessTable,
   compassSquare,
+  eyeOfHorus,
   hastingsChair,
   hoodedAdept,
   jachinBoaz,
   lectern,
   mosaicPavement,
+  orreryRings,
+  pentagonPavement,
   press,
   roseWindow,
   threeHours,
   tracingBoard,
+  unicursal,
   vaultHeptagon,
 } from './symbols.js';
 
@@ -339,6 +344,121 @@ export function willow(mats) {
   return shadowize(g);
 }
 
+export function ironCircle(mats) {
+  const g = new THREE.Group();
+  const disk = new THREE.Mesh(new THREE.CylinderGeometry(6.4, 6.8, 0.16, 5), mats.iron);
+  disk.position.y = 0.06;
+  g.add(disk);
+  g.add(pentagonPavement(5.2, mats));
+  for (let i = 0; i < 5; i++) {
+    const a = -Math.PI / 2 + (i / 5) * Math.PI * 2;
+    const h = 3.6 + (i % 2) * 0.7;
+    const menhir = new THREE.Mesh(new THREE.BoxGeometry(0.55, h, 0.22), i % 2 ? mats.iron : mats.stoneDark);
+    menhir.position.set(Math.cos(a) * 5.4, h * 0.5, Math.sin(a) * 5.4);
+    menhir.rotation.y = a + 0.2;
+    menhir.rotation.z = Math.sin(i) * 0.08;
+    g.add(menhir);
+  }
+  const lamp = new THREE.PointLight(0xff6a40, 1.05, 14, 2);
+  lamp.position.set(0, 2.2, 0);
+  g.add(lamp);
+  return shadowize(g);
+}
+
+export function craterTemple(mats) {
+  const g = new THREE.Group();
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2;
+    const col = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.22, 0.32, 2.4 + (i % 3) * 0.8, 6),
+      mats.stoneDark
+    );
+    col.position.set(Math.cos(a) * 7.4, 1.2, Math.sin(a) * 7.4);
+    col.rotation.z = Math.sin(i * 1.4) * 0.18;
+    g.add(col);
+  }
+  const mark = unicursal(1.6, mats.iron, 0.06);
+  mark.rotation.x = -Math.PI / 2;
+  mark.position.y = 0.08;
+  const eye = eyeOfHorus(mats, 1.15);
+  eye.position.set(0, 1.15, 0);
+  const glow = new THREE.PointLight(0xc9a24a, 0.9, 12, 2);
+  glow.position.set(0, 2.1, 0);
+  g.add(mark, eye, glow);
+  return shadowize(g);
+}
+
+export function cydonia(mats) {
+  const g = new THREE.Group();
+  const sizes = [
+    [0, 2.2, 8.4],
+    [-9.4, 7.2, 5.6],
+    [8.6, 7.8, 4.4],
+  ];
+  for (const [x, z, h] of sizes) {
+    const pyr = new THREE.Mesh(new THREE.ConeGeometry(h * 0.88, h, 4), mats.sand);
+    pyr.position.set(x, h * 0.5, z);
+    pyr.rotation.y = Math.PI * 0.25;
+    g.add(pyr);
+  }
+  const brow = new THREE.Mesh(new THREE.BoxGeometry(8.4, 1.1, 2.2), mats.stone);
+  brow.position.set(1.2, 2.2, -7.2);
+  const ridge = new THREE.Mesh(new THREE.BoxGeometry(10.4, 2.0, 3.2), mats.stoneDark);
+  ridge.position.set(0.4, 1.0, -9.4);
+  ridge.rotation.y = 0.12;
+  const socketL = new THREE.Mesh(new THREE.SphereGeometry(0.7, 6, 5), mats.iron);
+  socketL.position.set(-1.8, 2.4, -6.2);
+  const socketR = socketL.clone();
+  socketR.position.x = 2.8;
+  const chin = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.8, 1.6), mats.sand);
+  chin.position.set(0.6, 0.5, -11.2);
+  g.add(brow, ridge, socketL, socketR, chin);
+  return shadowize(g);
+}
+
+export function polarShrine(mats) {
+  const g = new THREE.Group();
+  const dais = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 4.6, 0.2, 10), mats.bone);
+  dais.position.y = 0.08;
+  g.add(dais);
+  const mark = ankh(mats, 1.35);
+  mark.position.y = 0.2;
+  g.add(mark);
+  for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * Math.PI * 2 - Math.PI / 2;
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.4, 6), mats.bone);
+    post.position.set(Math.cos(a) * 3.2, 0.7, Math.sin(a) * 3.2);
+    const flame = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 5), mats.glowGold);
+    flame.position.set(Math.cos(a) * 3.2, 1.5, Math.sin(a) * 3.2);
+    g.add(post, flame);
+  }
+  const light = new THREE.PointLight(0xe8d6a0, 1.1, 14, 2);
+  light.position.set(0, 2.4, 0);
+  g.add(light);
+  return shadowize(g);
+}
+
+export function canalOrrery(mats) {
+  const g = new THREE.Group();
+  const dais = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.8, 0.18, 10), mats.stone);
+  dais.position.y = 0.08;
+  g.add(dais, orreryRings(mats));
+  return shadowize(g);
+}
+
+export function redSeal(mats) {
+  const g = new THREE.Group();
+  g.add(pentagonPavement(6.4, mats));
+  const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 1.6, 6), mats.iron);
+  lamp.position.y = 0.8;
+  const ember = new THREE.Mesh(new THREE.SphereGeometry(0.12, 6, 5), mats.ember);
+  ember.position.y = 1.7;
+  const light = new THREE.PointLight(0xff6a30, 0.95, 11, 2);
+  light.position.set(0, 1.8, 0);
+  g.add(lamp, ember, light);
+  return shadowize(g);
+}
+
 export function nessie(mats) {
   const g = new THREE.Group();
   const neck = new THREE.Mesh(new THREE.CapsuleGeometry(0.35, 2.4, 4, 8), mats.stoneDark);
@@ -427,14 +547,84 @@ export function populate(scene, mats, obstacles) {
     const y = heightAt(t.x, t.z);
     obstacles.cyl(t.x, t.z, y, y + 4.5, 0.42, 'tree');
   }
-  for (let i = 0; i < 90; i++) {
-    const lat = (hash2(i, 3) - 0.5) * 2.1;
+  for (let i = 0; i < 70; i++) {
+    const lat = (hash2(i, 3) - 0.5) * 2.0;
     const lon = hash2(i, 8) * Math.PI * 2 - Math.PI;
-    const x = lon * PLANET_R;
-    const z = lat * PLANET_R;
+    const x = lon * MAP_SCALE;
+    const z = lat * MAP_SCALE;
     if (Math.hypot(x, z) < WORLD.islandR + 22) continue;
+    if (Math.abs(lat) > 1.02) continue;
     plant(twistedTree(mats, hash2(i, 1)), x, z, hash2(i, 5) * 6);
     obstacles.cyl(x, z, 0, 4.2, 0.4, 'tree');
+  }
+
+  plant(ironCircle(mats), POI.iron.x, POI.iron.z, 0.2);
+  for (let i = 0; i < 5; i++) {
+    const a = -Math.PI / 2 + (i / 5) * Math.PI * 2;
+    obstacles.box(
+      POI.iron.x + Math.cos(a) * 5.4,
+      POI.iron.z + Math.sin(a) * 5.4,
+      0,
+      4.2,
+      0.32,
+      0.16,
+      a,
+      'menhir'
+    );
+  }
+
+  plant(craterTemple(mats), POI.crater.x, POI.crater.z, 0.1);
+  for (let i = 0; i < 9; i++) {
+    const a = (i / 9) * Math.PI * 2;
+    obstacles.cyl(POI.crater.x + Math.cos(a) * 7.4, POI.crater.z + Math.sin(a) * 7.4, 0, 3.2, 0.34, 'col');
+  }
+
+  plant(cydonia(mats), POI.cydonia.x, POI.cydonia.z, 0.35);
+  obstacles.cyl(POI.cydonia.x, POI.cydonia.z, 0, 5.6, 2.2, 'pyr');
+  obstacles.cyl(POI.cydonia.x - 7.2, POI.cydonia.z + 4.6, 0, 3.8, 1.6, 'pyr');
+  obstacles.cyl(POI.cydonia.x + 6.4, POI.cydonia.z + 5.2, 0, 3.0, 1.2, 'pyr');
+
+  const polarG = polarShrine(mats);
+  polarG.scale.setScalar(1.7);
+  plant(polarG, POI.polar.x, POI.polar.z, 0.1);
+  obstacles.cyl(POI.polar.x, POI.polar.z, 0, 3.2, 0.55, 'idol');
+
+  const orr = canalOrrery(mats);
+  orr.scale.setScalar(2.1);
+  plant(orr, POI.orrery.x, POI.orrery.z, 0.4);
+  obstacles.cyl(POI.orrery.x, POI.orrery.z, 0, 3.2, 1.2, 'desk');
+
+  const sealG = redSeal(mats);
+  sealG.scale.setScalar(1.6);
+  plant(sealG, POI.seal.x, POI.seal.z, 0.15);
+  obstacles.cyl(POI.seal.x, POI.seal.z, 0, 1.8, 0.28, 'lamp');
+
+  for (const site of [POI.iron, POI.crater, POI.cydonia, POI.polar, POI.orrery, POI.seal]) {
+    for (let i = 0; i < 10; i++) {
+      const a = hash2(site.x + i, site.z) * Math.PI * 2;
+      const d = 10 + hash2(i, site.z) * 16;
+      const x = site.x + Math.cos(a) * d;
+      const z = site.z + Math.sin(a) * d;
+      const rock = new THREE.Mesh(
+        new THREE.DodecahedronGeometry(0.45 + hash2(i, 4) * 0.9, 0),
+        i % 2 ? mats.stone : mats.sand
+      );
+      rock.scale.set(1.2, 0.55 + hash2(i, 2) * 0.4, 1);
+      plant(shadowize(rock), x, z, a, 0.12);
+      obstacles.cyl(x, z, 0, 0.8, 0.4, 'rock');
+    }
+  }
+
+  const planetLamps = [0x2a2a30, 0x3a5088, 0x8a2430, 0xc9a24a, 0x3a6840, 0xb87838, 0xb8b8c8];
+  for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * Math.PI * 2 - Math.PI / 2;
+    const x = POI.plaza.x + Math.cos(a) * 22;
+    const z = POI.plaza.z + Math.sin(a) * 22;
+    const L = lantern(mats, i < 4);
+    plant(L, x, z);
+    const ember = L.children.find((c) => c.material === mats.ember);
+    if (ember) ember.material = mats.toon(planetLamps[i]);
+    obstacles.cyl(x, z, heightAt(x, z), heightAt(x, z) + 2.4, 0.12, 'lamp');
   }
 
   const pumps = scatter(44, 40, (x, z) => {

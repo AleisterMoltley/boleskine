@@ -19,8 +19,8 @@ export function makeCrowley(mats) {
 
   const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.42, 1.12, 10), mats.robe);
   robe.position.y = 0.22;
-  const robeFlare = new THREE.Mesh(new THREE.ConeGeometry(0.46, 0.28, 10, 1, true), mats.robeDeep);
-  robeFlare.position.y = -0.28;
+  const robeFlare = new THREE.Mesh(new THREE.ConeGeometry(0.5, 0.44, 10, 1, true), mats.robeDeep);
+  robeFlare.position.y = -0.44;
   robeFlare.rotation.x = Math.PI;
   const sash = new THREE.Mesh(new THREE.TorusGeometry(0.3, 0.034, 5, 12), mats.sash);
   sash.rotation.x = Math.PI * 0.5;
@@ -167,14 +167,14 @@ export function makeCrowley(mats) {
     armL.rotation.x = -swing * 0.7;
     armR.rotation.x = swing * 0.35 - pose.cast * 1.15;
     armR.rotation.z = 0.08 - pose.cast * 0.4;
-    hips.position.y = 0.62 + Math.abs(Math.sin(pose.walk)) * 0.045 * w;
-    tilt.rotation.x = pawn.sprinting ? 0.1 : pawn.swimming ? 0.22 : 0.02;
+    hips.position.y = 0.62 + Math.abs(Math.sin(pose.walk)) * 0.04 * w;
+    tilt.rotation.x = pawn.sprinting ? 0.1 : pawn.dust ? 0.06 : 0.02;
     tilt.rotation.z = Math.sin(pose.walk) * 0.04 * w;
     head.rotation.x = Math.sin(pose.bob * 1.3) * 0.03;
     staff.rotation.z = 0.08 + pose.cast * 0.5;
-    if (pawn.swimming) {
-      legL.rotation.x = Math.sin(pose.bob * 4) * 0.4;
-      legR.rotation.x = Math.cos(pose.bob * 4) * 0.4;
+    if (pawn.dust && w) {
+      legL.rotation.x = swing * 0.7;
+      legR.rotation.x = -swing * 0.7;
     }
     root.position.copy(pawn.pos);
     orientOnPlanet(root, upOf(pawn.pos), pawn.yaw);

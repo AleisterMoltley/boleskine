@@ -12,3 +12,17 @@ Ask:
 4. Is the island too empty between landmarks?
 
 Known: no painted key art (image tools blocked). Look is all in-engine.
+
+## 2026-08-17 — Mars, planted walk, more occult
+
+- Character snaps to the land mesh (no chord-float).
+- Planet radius 380; rust highlands, maria, Phobos/Deimos.
+- New sites: Eisenkreis, Opferkrater, Wächter (Cydonia), Weiße Kappe, Uhr der Bahnen, rotes Siegel.
+- Dust basins walk slow; no swimming.
+
+Ask:
+
+1. Do the feet sit on the rust, or is there still a gap?
+2. Does the planet feel large enough to walk?
+3. Are the new sites readable as occult without signs?
+

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { POI } from './config.js';
 import { hash2 } from './math.js';
 import { isWater } from './height.js';
-import { mapToPos, orientOnPlanet, tangentBasis, upOf, wrapTangent } from './planet.js';
+import { mapToPos, orientOnPlanet, plantOnMesh, tangentBasis, upOf, wrapTangent } from './planet.js';
 
 const _up = new THREE.Vector3();
 const _wish = new THREE.Vector3();
@@ -26,6 +26,7 @@ export function createCombat(scene, mats) {
     eR.position.x = 0.06;
     g.add(body, head, eL, eR);
     const pos = mapToPos(mx, mz);
+    plantOnMesh(pos);
     g.position.copy(pos);
     orientOnPlanet(g, upOf(pos), 0);
     group.add(g);
@@ -111,6 +112,7 @@ export function createCombat(scene, mats) {
         s.mz += (dz / d) * 2.35 * dt;
       }
       const pos = mapToPos(s.mx, s.mz);
+      plantOnMesh(pos);
       s.mesh.position.copy(pos);
       upOf(pos, _up);
       _wish.copy(pawn.pos).sub(pos);
