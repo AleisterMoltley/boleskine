@@ -2,11 +2,12 @@ import * as THREE from 'three';
 import { PLANET_COLS, POI, WORLD } from '../config.js';
 import { hash2 } from '../math.js';
 import { heightAt, isWater, pathWidth, scatter } from '../height.js';
-import { mapToPos, orientOnPlanet, MAP_SCALE, upOf } from '../planet.js';
+import { mapToPos, orientOnPlanet, MAP_SCALE, tangentBasis, upOf } from '../planet.js';
 import {
   ankh,
   ashlars,
   cairn,
+  candle,
   chessTable,
   compassSquare,
   eyeOfHorus,
@@ -130,6 +131,164 @@ export function grave(mats, rng) {
 
 export function fencePost(mats) {
   return new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.15, 0.08), mats.iron);
+}
+
+export function barrel(mats) {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.3, 0.52, 8), mats.wood);
+  body.position.y = 0.26;
+  const hoop = new THREE.Mesh(new THREE.TorusGeometry(0.29, 0.02, 4, 10), mats.iron);
+  hoop.rotation.x = Math.PI / 2;
+  hoop.position.y = 0.38;
+  g.add(body, hoop);
+  return shadowize(g);
+}
+
+export function crate(mats, rng = 0.4) {
+  const g = new THREE.Group();
+  const box = new THREE.Mesh(new THREE.BoxGeometry(0.48 + rng * 0.12, 0.38, 0.44), mats.woodDeep);
+  box.position.y = 0.2;
+  box.rotation.y = rng;
+  g.add(box);
+  return shadowize(g);
+}
+
+export function pot(mats) {
+  const g = new THREE.Group();
+  const jar = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 0.28, 7), mats.sand);
+  jar.position.y = 0.14;
+  g.add(jar);
+  return shadowize(g);
+}
+
+export function bench(mats) {
+  const g = new THREE.Group();
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.07, 0.34), mats.wood);
+  seat.position.y = 0.42;
+  const back = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.38, 0.06), mats.woodDeep);
+  back.position.set(0, 0.64, -0.14);
+  g.add(seat, back);
+  for (const x of [-0.46, 0.46]) {
+    const leg = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.4, 0.07), mats.wood);
+    leg.position.set(x, 0.2, 0.08);
+    g.add(leg);
+  }
+  return shadowize(g);
+}
+
+export function cart(mats) {
+  const g = new THREE.Group();
+  const bed = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.14, 0.72), mats.wood);
+  bed.position.y = 0.48;
+  const pole = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 1.1), mats.woodDeep);
+  pole.position.set(0, 0.48, 0.85);
+  g.add(bed, pole);
+  for (const z of [-0.28, 0.28]) {
+    const wheel = new THREE.Mesh(new THREE.TorusGeometry(0.28, 0.05, 5, 10), mats.iron);
+    wheel.position.set(0.55, 0.28, z);
+    g.add(wheel);
+  }
+  return shadowize(g);
+}
+
+export function deadBush(mats, rng = 0.5) {
+  const g = new THREE.Group();
+  for (let i = 0; i < 5; i++) {
+    const twig = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.04, 0.7 + rng * 0.4, 4), mats.woodDeep);
+    twig.position.set((i - 2) * 0.08, 0.35, (i % 2) * 0.06);
+    twig.rotation.z = (i - 2) * 0.28;
+    twig.rotation.x = Math.sin(i) * 0.2;
+    g.add(twig);
+  }
+  return shadowize(g);
+}
+
+export function rustWreck(mats, rng = 0.5) {
+  const g = new THREE.Group();
+  const hull = new THREE.Mesh(new THREE.BoxGeometry(1.6 + rng, 0.35, 0.7), mats.iron);
+  hull.position.y = 0.18;
+  hull.rotation.z = 0.18;
+  hull.rotation.y = rng;
+  const rib = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.7, 0.5), mats.stoneDark);
+  rib.position.set(0.3, 0.4, 0);
+  rib.rotation.z = -0.3;
+  g.add(hull, rib);
+  return shadowize(g);
+}
+
+export function scarecrow(mats) {
+  const g = new THREE.Group();
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 1.8, 5), mats.wood);
+  pole.position.y = 0.9;
+  const arm = new THREE.Mesh(new THREE.BoxGeometry(1.15, 0.08, 0.08), mats.woodDeep);
+  arm.position.y = 1.35;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 6, 5), mats.pumpkin);
+  head.position.y = 1.85;
+  const face = new THREE.Mesh(new THREE.CircleGeometry(0.08, 5), mats.ember);
+  face.position.set(0, 1.85, 0.16);
+  g.add(pole, arm, head, face);
+  return shadowize(g);
+}
+
+export function bookStack(mats) {
+  const g = new THREE.Group();
+  const cols = [mats.sash, mats.woodDeep, mats.goldDeep, mats.sand];
+  for (let i = 0; i < 4; i++) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(0.28 - i * 0.02, 0.06, 0.36), cols[i]);
+    b.position.y = 0.04 + i * 0.065;
+    b.rotation.y = i * 0.18;
+    g.add(b);
+  }
+  return shadowize(g);
+}
+
+export function banner(mats) {
+  const g = new THREE.Group();
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.04, 2.6, 5), mats.iron);
+  pole.position.y = 1.3;
+  const cloth = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.95), mats.sash);
+  cloth.position.set(0.38, 1.85, 0);
+  cloth.rotation.y = 0.08;
+  g.add(pole, cloth);
+  g.userData.flap = cloth;
+  return shadowize(g);
+}
+
+export function hangingCrow(mats) {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.11, 6, 5), mats.robeDeep);
+  body.scale.set(1, 0.7, 1.5);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.06, 5, 4), mats.robeDeep);
+  head.position.set(0, 0.04, 0.14);
+  const wing = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.03, 0.16), mats.iron);
+  wing.position.y = 0.02;
+  g.add(body, head, wing);
+  return g;
+}
+
+export function blackCat(mats) {
+  const g = new THREE.Group();
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 0.28, 3, 6), mats.robeDeep);
+  body.rotation.z = 1.2;
+  body.position.set(0, 0.16, 0);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 5), mats.robeDeep);
+  head.position.set(0.18, 0.22, 0);
+  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.03, 0.32, 4), mats.robeDeep);
+  tail.position.set(-0.18, 0.28, 0);
+  tail.rotation.z = 0.7;
+  g.add(body, head, tail);
+  return shadowize(g);
+}
+
+export function candles(mats, n = 3) {
+  if (!Number.isInteger(n) || n < 1 || n > 8) n = 3;
+  const g = new THREE.Group();
+  for (let i = 0; i < n; i++) {
+    const c = candle(mats, 0.28 + (i % 3) * 0.08);
+    c.position.set((i - (n - 1) * 0.5) * 0.16, 0, (i % 2) * 0.08);
+    g.add(c);
+  }
+  return shadowize(g);
 }
 
 export function crookedHouse(mats, w, d, h, lean = 0.08) {
@@ -684,6 +843,9 @@ export function populate(scene, mats, obstacles) {
     [POI.village.x - 14, POI.village.z + 10, 4.4, 4.8, 3.8, -0.14],
     [POI.village.x + 18, POI.village.z + 4, 4.0, 4.2, 4.2, 0.06],
     [POI.village.x - 6, POI.village.z - 16, 5.0, 4.4, 4.6, 0.09],
+    [POI.village.x + 22, POI.village.z - 12, 4.2, 3.8, 3.6, 0.11],
+    [POI.village.x - 20, POI.village.z - 4, 3.8, 4.4, 4.0, -0.1],
+    [POI.village.x + 4, POI.village.z + 20, 4.8, 3.6, 3.4, 0.07],
   ];
   for (const [x, z, w, d, h, lean] of houses) {
     plant(crookedHouse(mats, w, d, h, lean), x, z, hash2(Math.floor(x), Math.floor(z)) * 6);
@@ -691,7 +853,7 @@ export function populate(scene, mats, obstacles) {
     obstacles.box(x, z, y, y + h + 0.4, w * 0.52, d * 0.52, 0, 'house');
   }
 
-  const trees = scatter(19, 150, (x, z) => {
+  const trees = scatter(19, 210, (x, z) => {
     if (isWater(x, z)) return false;
     if (pathWidth(x, z) < 5.5) return false;
     if (Math.hypot(x, z) > WORLD.islandR - 8) return false;
@@ -709,7 +871,7 @@ export function populate(scene, mats, obstacles) {
     const y = heightAt(t.x, t.z);
     obstacles.cyl(t.x, t.z, y, y + 4.5, 0.42, 'tree');
   }
-  for (let i = 0; i < 70; i++) {
+  for (let i = 0; i < 110; i++) {
     const lat = (hash2(i, 3) - 0.5) * 2.0;
     const lon = hash2(i, 8) * Math.PI * 2 - Math.PI;
     const x = lon * MAP_SCALE;
@@ -837,7 +999,7 @@ export function populate(scene, mats, obstacles) {
     obstacles.cyl(x, z, heightAt(x, z), heightAt(x, z) + 2.4, 0.12, 'lamp');
   }
 
-  const pumps = scatter(44, 40, (x, z) => {
+  const pumps = scatter(44, 72, (x, z) => {
     if (isWater(x, z) || pathWidth(x, z) < 2.5) return false;
     return Math.hypot(x - POI.village.x, z - POI.village.z) < 36 || hash2(Math.floor(x * 2), Math.floor(z * 2)) > 0.86;
   });
@@ -847,7 +1009,7 @@ export function populate(scene, mats, obstacles) {
     obstacles.cyl(p.x, p.z, y, y + 0.5, 0.28, 'pump');
   }
 
-  const graves = scatter(71, 28, (x, z) => {
+  const graves = scatter(71, 44, (x, z) => {
     const d = Math.hypot(x - POI.kirk.x, z - POI.kirk.z);
     return d > 8 && d < 28 && !isWater(x, z) && pathWidth(x, z) > 3;
   });
@@ -878,9 +1040,15 @@ export function populate(scene, mats, obstacles) {
     [POI.kirk.x - 6, POI.kirk.z + 8],
     [POI.pier.x + 2, POI.pier.z - 8],
     [POI.abbey.x + 10, POI.abbey.z + 2],
+    [POI.fullness.x + 6, POI.fullness.z - 4],
+    [POI.daath.x - 5, POI.daath.z + 3],
+    [POI.manor.x + 8, POI.manor.z - 10],
+    [POI.wood.x + 8, POI.wood.z + 6],
     [-20, -20],
     [40, -30],
     [-60, 10],
+    [70, 70],
+    [-40, -50],
   ];
   for (const [x, z] of lamps) {
     if (isWater(x, z)) continue;
@@ -920,7 +1088,7 @@ export function populate(scene, mats, obstacles) {
   }
 
   // rocks
-  const rocks = scatter(101, 55, (x, z) => !isWater(x, z) && pathWidth(x, z) > 4 && hash2(Math.floor(x), Math.floor(z) + 3) > 0.72);
+  const rocks = scatter(101, 95, (x, z) => !isWater(x, z) && pathWidth(x, z) > 4 && hash2(Math.floor(x), Math.floor(z) + 3) > 0.68);
   for (const r of rocks) {
     const mesh = new THREE.Mesh(new THREE.DodecahedronGeometry(0.4 + r.r * 0.7, 0), mats.stone);
     mesh.scale.set(1 + r.t, 0.6 + r.r * 0.5, 1);
@@ -995,5 +1163,185 @@ export function populate(scene, mats, obstacles) {
   obstacles.cyl(POI.plaza.x - 1.35, POI.plaza.z + 7.6, py, py + 4.2, 0.32, 'col');
   obstacles.cyl(POI.plaza.x + 1.35, POI.plaza.z + 7.6, py, py + 4.2, 0.32, 'col');
 
-  return { manorG, ness, lights };
+  const clutter = [
+    [barrel, POI.manor.x + 6.2, POI.manor.z - 7.4, 0.3],
+    [barrel, POI.manor.x + 6.9, POI.manor.z - 6.8, 1.1],
+    [crate, POI.manor.x - 8.5, POI.manor.z - 6.2, 0.4],
+    [crate, POI.manor.x - 7.8, POI.manor.z - 7.0, 0.9],
+    [bookStack, POI.manor.x + 2.4, POI.manor.z + 6.2, 0.2],
+    [bench, POI.manor.x + 4.5, POI.manor.z + 8.5, 0.4],
+    [blackCat, POI.manor.x + 5.2, POI.manor.z + 8.0, 1.2],
+    [pot, POI.spawn.x - 3.2, POI.spawn.z + 2.4, 0.1],
+    [pot, POI.spawn.x - 2.6, POI.spawn.z + 2.8, 0.6],
+    [barrel, POI.spawn.x + 5.5, POI.spawn.z - 4.2, 0.2],
+    [bench, POI.plaza.x + 8.4, POI.plaza.z - 6.2, 0.8],
+    [bench, POI.plaza.x - 8.8, POI.plaza.z - 5.4, -0.6],
+    [candles, POI.plaza.x + 3.2, POI.plaza.z + 4.4, 0],
+    [candles, POI.plaza.x - 4.1, POI.plaza.z + 3.6, 0.4],
+    [pot, POI.plaza.x + 6.2, POI.plaza.z + 6.8, 0.2],
+    [cart, POI.village.x - 8.4, POI.village.z + 2.2, 0.7],
+    [barrel, POI.village.x - 6.8, POI.village.z + 3.4, 0.2],
+    [barrel, POI.village.x - 6.2, POI.village.z + 2.6, 1.4],
+    [crate, POI.village.x + 5.5, POI.village.z - 2.8, 0.3],
+    [crate, POI.village.x + 6.4, POI.village.z - 3.4, 0.9],
+    [scarecrow, POI.village.x + 16, POI.village.z - 10, 0.4],
+    [scarecrow, POI.village.x - 18, POI.village.z + 6, -0.5],
+    [blackCat, POI.village.x + 3.2, POI.village.z + 4.4, 0.2],
+    [bench, POI.kirk.x + 5.4, POI.kirk.z + 6.2, -0.4],
+    [candles, POI.kirk.x + 1.2, POI.kirk.z + 5.8, 0],
+    [candles, POI.kirk.x - 1.4, POI.kirk.z + 5.4, 0.3],
+    [bookStack, POI.kirk.x - 3.2, POI.kirk.z + 4.6, 0.5],
+    [pot, POI.abbey.x + 4.2, POI.abbey.z + 5.5, 0.1],
+    [pot, POI.abbey.x + 5.0, POI.abbey.z + 4.8, 0.8],
+    [candles, POI.abbey.x - 2.4, POI.abbey.z + 3.2, 0.2],
+    [bookStack, POI.abbey.x + 2.8, POI.abbey.z - 2.2, 0.4],
+    [barrel, POI.pier.x + 3.4, POI.pier.z - 10, 0.2],
+    [barrel, POI.pier.x - 3.2, POI.pier.z - 8, 0.9],
+    [crate, POI.pier.x + 2.6, POI.pier.z - 12, 0.3],
+    [bench, POI.nether.x + 2.8, POI.nether.z - 2.2, 3.2],
+    [bookStack, POI.press.x + 1.4, POI.press.z + 1.1, 0.2],
+    [crate, POI.press.x - 1.6, POI.press.z + 0.8, 0.5],
+    [candles, POI.fullness.x + 2.2, POI.fullness.z + 1.4, 0],
+    [bench, POI.fullness.x - 3.4, POI.fullness.z - 2.2, 0.5],
+    [bookStack, POI.daath.x + 2.6, POI.daath.z - 1.2, 0.2],
+  ];
+  for (const [fn, x, z, rot] of clutter) {
+    if (isWater(x, z)) continue;
+    plant(fn(mats, hash2(Math.floor(x), Math.floor(z))), x, z, rot);
+    const y = heightAt(x, z);
+    obstacles.cyl(x, z, y, y + 0.55, 0.28, 'desk');
+  }
+
+  plant(banner(mats), POI.plaza.x + 6.5, POI.plaza.z + 8.2, 0.2);
+  plant(banner(mats), POI.village.x - 4, POI.village.z - 8, -0.4);
+  plant(banner(mats), POI.abbey.x - 8, POI.abbey.z + 3, 0.6);
+  plant(banner(mats), POI.manor.x - 6, POI.manor.z + 8, 0.1);
+
+  for (let i = 0; i < 18; i++) {
+    const a = (i / 18) * Math.PI * 1.6 + 0.4;
+    const x = POI.manor.x + Math.cos(a) * 15;
+    const z = POI.manor.z + Math.sin(a) * 12;
+    if (isWater(x, z)) continue;
+    plant(fencePost(mats), x, z, 0, 0.55);
+    obstacles.cyl(x, z, heightAt(x, z), heightAt(x, z) + 1.2, 0.1, 'fence');
+  }
+
+  const bushes = scatter(33, 80, (x, z) => {
+    if (isWater(x, z) || pathWidth(x, z) < 3) return false;
+    return Math.hypot(x, z) < WORLD.islandR - 6 && hash2(Math.floor(x), Math.floor(z) + 7) > 0.62;
+  });
+  for (const b of bushes) {
+    plant(deadBush(mats, b.r), b.x, b.z, b.t * 5);
+  }
+
+  for (let i = 0; i < 28; i++) {
+    const lat = (hash2(i, 11) - 0.5) * 2.0;
+    const lon = hash2(i, 19) * Math.PI * 2 - Math.PI;
+    const x = lon * MAP_SCALE;
+    const z = lat * MAP_SCALE;
+    if (Math.hypot(x, z) < WORLD.islandR + 18) continue;
+    plant(hash2(i, 2) > 0.55 ? rustWreck(mats, hash2(i, 4)) : deadBush(mats, hash2(i, 6)), x, z, hash2(i, 7) * 6);
+    if (hash2(i, 2) > 0.55) obstacles.cyl(x, z, 0, 0.7, 0.7, 'rock');
+  }
+
+  const ravens = [];
+  for (let i = 0; i < 10; i++) {
+    const mesh = hangingCrow(mats);
+    mesh.scale.setScalar(1.3 + hash2(i, 2) * 0.5);
+    scene.add(mesh);
+    ravens.push({
+      mesh,
+      cx: POI.plaza.x + (hash2(i, 1) - 0.5) * 40,
+      cz: POI.plaza.z + (hash2(i, 4) - 0.5) * 40,
+      rad: 8 + hash2(i, 6) * 18,
+      h: 4.5 + hash2(i, 8) * 5,
+      spd: 0.22 + hash2(i, 3) * 0.25,
+      ph: hash2(i, 9) * 6.2,
+    });
+  }
+  for (const hub of [POI.kirk, POI.manor, POI.village, POI.abbey]) {
+    for (let i = 0; i < 3; i++) {
+      const mesh = hangingCrow(mats);
+      scene.add(mesh);
+      ravens.push({
+        mesh,
+        cx: hub.x,
+        cz: hub.z,
+        rad: 6 + i * 3,
+        h: 5 + i,
+        spd: 0.3 + i * 0.08,
+        ph: i * 2.1,
+      });
+    }
+  }
+
+  const moths = [];
+  for (const L of lights.slice(0, 8)) {
+    for (let i = 0; i < 3; i++) {
+      const m = new THREE.Mesh(new THREE.SphereGeometry(0.035, 4, 3), mats.glowGold);
+      scene.add(m);
+      moths.push({ mesh: m, lamp: L, ph: i * 2.1, rad: 0.45 + i * 0.12 });
+    }
+  }
+
+  const flickers = [];
+  scene.traverse((o) => {
+    if (o.isPointLight && o.color && (o.color.r > 0.6 || o.color.b > 0.4)) flickers.push(o);
+  });
+
+  const banners = [];
+  scene.traverse((o) => {
+    if (o.userData && o.userData.flap) banners.push(o.userData.flap);
+  });
+
+  const smokes = [];
+  for (const [x, z] of [
+    [POI.village.x - 10, POI.village.z - 8],
+    [POI.village.x + 12, POI.village.z - 6],
+    [POI.village.x + 8, POI.village.z + 12],
+    [POI.manor.x + 4, POI.manor.z - 2],
+  ]) {
+    const puff = new THREE.Mesh(
+      new THREE.SphereGeometry(0.14, 5, 4),
+      new THREE.MeshBasicMaterial({ color: 0xb09880, transparent: true, opacity: 0.16, depthWrite: false })
+    );
+    plant(puff, x, z, 0, 4.6);
+    smokes.push(puff);
+  }
+
+  function tick(t) {
+    for (const r of ravens) {
+      const a = t * r.spd + r.ph;
+      const p = mapToPos(r.cx + Math.cos(a) * r.rad, r.cz + Math.sin(a) * r.rad, r.h + Math.sin(t * 1.6 + r.ph) * 0.45);
+      r.mesh.position.copy(p);
+      orientOnPlanet(r.mesh, upOf(p), a + Math.PI * 0.5);
+    }
+    for (const m of moths) {
+      if (!m.lamp) continue;
+      const a = t * 3.4 + m.ph;
+      const up = upOf(m.lamp.position);
+      const { east, north } = tangentBasis(up);
+      m.mesh.position
+        .copy(m.lamp.position)
+        .addScaledVector(up, 2.05 + Math.sin(a * 1.7) * 0.15)
+        .addScaledVector(east, Math.cos(a) * m.rad)
+        .addScaledVector(north, Math.sin(a * 1.3) * m.rad);
+    }
+    for (let i = 0; i < flickers.length; i++) {
+      const L = flickers[i];
+      L.intensity = (L.userData.base ?? (L.userData.base = L.intensity)) * (0.82 + Math.sin(t * 14 + i * 1.7) * 0.18);
+    }
+    for (let i = 0; i < banners.length; i++) {
+      banners[i].rotation.z = Math.sin(t * 1.6 + i) * 0.18;
+      banners[i].rotation.x = Math.sin(t * 1.1 + i * 0.7) * 0.08;
+    }
+    for (let i = 0; i < smokes.length; i++) {
+      const s = smokes[i];
+      const u = upOf(s.position);
+      s.scale.setScalar(1 + Math.sin(t * 0.8 + i) * 0.25);
+      s.position.addScaledVector(u, Math.sin(t * 0.5 + i) * 0.004);
+    }
+  }
+
+  return { manorG, ness, lights, tick };
 }

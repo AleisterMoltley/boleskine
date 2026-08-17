@@ -68,5 +68,30 @@ export function createSky(scene, mats) {
   sirius.position.set(PLANET_R + 180, 140, 90);
   scene.add(sirius);
 
-  return { moonLight, moon, phobos, deimos, sun };
+  const dustGeo = new THREE.BufferGeometry();
+  const dn = 420;
+  const dpos = new Float32Array(dn * 3);
+  for (let i = 0; i < dn; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const b = Math.acos(2 * Math.random() - 1);
+    const r = PLANET_R + 6 + Math.random() * 28;
+    dpos[i * 3] = r * Math.sin(b) * Math.cos(a);
+    dpos[i * 3 + 1] = r * Math.cos(b);
+    dpos[i * 3 + 2] = r * Math.sin(b) * Math.sin(a);
+  }
+  dustGeo.setAttribute('position', new THREE.BufferAttribute(dpos, 3));
+  const dust = new THREE.Points(
+    dustGeo,
+    new THREE.PointsMaterial({ color: 0xc48860, size: 0.55, transparent: true, opacity: 0.45, depthWrite: false })
+  );
+  scene.add(dust);
+
+  function tick(t) {
+    phobos.rotation.y = t * 0.04;
+    phobos.rotation.z = Math.sin(t * 0.07) * 0.15;
+    deimos.rotation.y = t * 0.06;
+    dust.rotation.y = t * 0.008;
+  }
+
+  return { moonLight, moon, phobos, deimos, sun, tick };
 }

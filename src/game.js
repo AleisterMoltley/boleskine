@@ -276,6 +276,8 @@ export function boot(canvas) {
       rippleWater(terrain.water, t);
       npcs.tick(t);
       relics.tick(t);
+      world.tick?.(t);
+      sky.tick?.(t);
       renderer.render(scene, camera);
       input.endFrame();
       return;
@@ -318,6 +320,8 @@ export function boot(canvas) {
     crowley.tick(dt, pawn, state.castCd > 0.2);
     npcs.tick(state.time);
     relics.tick(state.time);
+    world.tick?.(state.time);
+    sky.tick?.(state.time);
     combat.tick(dt, pawn, hurt);
     rippleWater(terrain.water, state.time);
 
