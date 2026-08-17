@@ -40,7 +40,7 @@ export function boot(canvas) {
   renderer.setSize(innerWidth, innerHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.12;
+  renderer.toneMappingExposure = 1.3;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -335,7 +335,7 @@ export function boot(canvas) {
     audio.tick(dt, threat);
     camera.fov = 56 + Math.sin(state.time * 0.11) * 1.1 - threat * 2.2;
     camera.updateProjectionMatrix();
-    renderer.toneMappingExposure = 1.12 - threat * 0.06;
+    renderer.toneMappingExposure = 1.3 - threat * 0.04;
 
     {
       const np = mapToPos(8 + Math.sin(state.time * 0.15) * 10, 116 + Math.cos(state.time * 0.12) * 6, 0.3);
@@ -398,7 +398,7 @@ export function boot(canvas) {
     const fade = document.getElementById('hurt');
     if (fade) fade.style.opacity = String(state.hurtFlash * 0.55);
     const dreadEl = document.getElementById('dread');
-    if (dreadEl) dreadEl.style.opacity = String(0.06 + threat * 0.16);
+    if (dreadEl) dreadEl.style.opacity = String(0.32 + threat * 0.1);
 
     const ritualBar = document.getElementById('ritual');
     if (ritualBar) {

@@ -53,6 +53,10 @@ Ask:
 3. Do the tall figures threaten, or look like bugs?
 4. Too dark to walk, or just dark enough?
 
+## 2026-08-17 — a tick brighter, mauve-gold night
+
+Lifted moonlight and the toon floor. Sky is mauve-rose, fog tints the distance, teal fill in the shadows. Vignette is a wash, not a black hole.
+
 ## 2026-08-17 — the three lies fixed
 
 Moonlight lifted so rust and paths read. Watchers are 5m, grey-violet, gold eyes, planted on every walk and both sides of the house path. Continent dressed with instanced trees, menhirs, boulders, bushes — not 10cm grit. Far maria still thinner than the island.

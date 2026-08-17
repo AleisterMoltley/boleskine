@@ -8,16 +8,16 @@ function skyCanvas() {
   c.height = 256;
   const g = c.getContext('2d');
   const grd = g.createLinearGradient(0, c.height, 0, 0);
-  grd.addColorStop(0, '#3a1816');
-  grd.addColorStop(0.28, '#241018');
-  grd.addColorStop(0.48, '#140e18');
-  grd.addColorStop(0.72, '#0a0812');
-  grd.addColorStop(1, '#06050c');
+  grd.addColorStop(0, '#8a3848');
+  grd.addColorStop(0.22, '#5a2848');
+  grd.addColorStop(0.45, '#2e2448');
+  grd.addColorStop(0.72, '#1c1834');
+  grd.addColorStop(1, '#16122c');
   g.fillStyle = grd;
   g.fillRect(0, 0, c.width, c.height);
-  g.globalAlpha = 0.18;
+  g.globalAlpha = 0.22;
   for (let i = 0; i < 18; i++) {
-    g.fillStyle = i % 2 ? '#2a1420' : '#1a1018';
+    g.fillStyle = i % 2 ? '#6a3058' : '#3a2858';
     g.beginPath();
     g.ellipse(
       (Math.sin(i * 1.7) * 0.5 + 0.5) * c.width,
@@ -65,9 +65,19 @@ function watchingMoon(mats) {
   const halo = new THREE.Mesh(
     new THREE.SphereGeometry(24, 16, 12),
     new THREE.MeshBasicMaterial({
-      color: 0xe8c890,
+      color: 0xffe0a8,
       transparent: true,
-      opacity: 0.14,
+      opacity: 0.28,
+      depthWrite: false,
+      fog: false,
+    })
+  );
+  const bloom = new THREE.Mesh(
+    new THREE.SphereGeometry(36, 16, 12),
+    new THREE.MeshBasicMaterial({
+      color: 0xc080a0,
+      transparent: true,
+      opacity: 0.1,
       depthWrite: false,
       fog: false,
     })
@@ -83,7 +93,7 @@ function watchingMoon(mats) {
   );
   face.position.z = -19.6;
   face.rotation.y = Math.PI;
-  g.add(disk, halo, face);
+  g.add(disk, bloom, halo, face);
   return g;
 }
 
@@ -93,8 +103,8 @@ export function createSky(scene, mats) {
   const _e = new THREE.Vector3();
   const _n = new THREE.Vector3();
 
-  scene.background = new THREE.Color(0x07060f);
-  scene.fog = new THREE.FogExp2(0x1c1418, 0.0044);
+  scene.background = new THREE.Color(0x1c1830);
+  scene.fog = new THREE.FogExp2(0x4a3048, 0.003);
 
   const dome = new THREE.Mesh(
     new THREE.SphereGeometry(1380, 32, 20),
@@ -102,7 +112,7 @@ export function createSky(scene, mats) {
   );
   scene.add(dome);
 
-  const hemi = new THREE.HemisphereLight(0x5a4868, 0x2a1814, 0.66);
+  const hemi = new THREE.HemisphereLight(0x8a7098, 0x4a2c22, 0.88);
   scene.add(hemi);
 
   const moon = watchingMoon(mats);
@@ -128,7 +138,7 @@ export function createSky(scene, mats) {
   faceMoon(mapToPos(POI.spawn.x, POI.spawn.z));
   scene.add(moon);
 
-  const moonLight = new THREE.DirectionalLight(0xe8c890, 0.82);
+  const moonLight = new THREE.DirectionalLight(0xffe4b8, 1.18);
   moonLight.castShadow = true;
   moonLight.shadow.mapSize.set(2048, 2048);
   moonLight.shadow.camera.near = 10;
@@ -142,11 +152,11 @@ export function createSky(scene, mats) {
   scene.add(moonLight);
   scene.add(moonLight.target);
 
-  const fill = new THREE.DirectionalLight(0x4a6088, 0.16);
+  const fill = new THREE.DirectionalLight(0x5a88b0, 0.34);
   fill.position.copy(manor).addScaledVector(upM, 40).addScaledVector(basis.north, -50).addScaledVector(basis.east, 30);
   scene.add(fill);
 
-  const under = new THREE.HemisphereLight(0x000000, 0x3a1018, 0.12);
+  const under = new THREE.HemisphereLight(0x000000, 0x5a2030, 0.2);
   scene.add(under);
 
   const dusk = new THREE.Mesh(
@@ -208,9 +218,9 @@ export function createSky(scene, mats) {
 
   const traces = new THREE.Group();
   const goldLine = new THREE.LineBasicMaterial({
-    color: 0xc9a24a,
+    color: 0xe8c86a,
     transparent: true,
-    opacity: 0.22,
+    opacity: 0.38,
     fog: false,
   });
   function skyPoly(pts) {
@@ -246,24 +256,35 @@ export function createSky(scene, mats) {
   skyPoly(vesica);
   scene.add(traces);
 
-  const moteN = 90;
+  const moteN = 140;
   const moteGeo = new THREE.BufferGeometry();
   const motePos = new Float32Array(moteN * 3);
+  const moteCol = new Float32Array(moteN * 3);
   const moteOff = [];
+  const moteTints = [
+    [1, 0.86, 0.55],
+    [0.85, 0.55, 0.75],
+    [0.55, 0.82, 0.78],
+  ];
   for (let i = 0; i < moteN; i++) {
     const a = Math.random() * Math.PI * 2;
     const b = Math.acos(2 * Math.random() - 1);
-    const r = 2.2 + Math.random() * 10;
+    const r = 1.8 + Math.random() * 12;
     moteOff.push(r * Math.sin(b) * Math.cos(a), r * Math.cos(b), r * Math.sin(b) * Math.sin(a));
+    const c = moteTints[i % 3];
+    moteCol[i * 3] = c[0];
+    moteCol[i * 3 + 1] = c[1];
+    moteCol[i * 3 + 2] = c[2];
   }
   moteGeo.setAttribute('position', new THREE.BufferAttribute(motePos, 3));
+  moteGeo.setAttribute('color', new THREE.BufferAttribute(moteCol, 3));
   const motes = new THREE.Points(
     moteGeo,
     new THREE.PointsMaterial({
-      color: 0xc4a088,
-      size: 0.14,
+      vertexColors: true,
+      size: 0.2,
       transparent: true,
-      opacity: 0.42,
+      opacity: 0.55,
       depthWrite: false,
       sizeAttenuation: true,
     })
@@ -274,9 +295,12 @@ export function createSky(scene, mats) {
     deimos.rotation.y = t * 0.05;
     sirius.scale.setScalar(1 + Math.sin(t * 2.2) * 0.12);
     traces.rotation.y = t * 0.002;
-    scene.fog.density = 0.0042 + Math.sin(t * 0.13) * 0.0008;
+    scene.fog.density = 0.0028 + Math.sin(t * 0.13) * 0.0006;
+    const wash = 0.5 + Math.sin(t * 0.09) * 0.5;
+    scene.fog.color.setHex(wash > 0.5 ? 0x4a3048 : 0x5a2838);
     const eclipse = Math.sin(t * 0.07);
-    moonLight.intensity = 0.82 * (eclipse > 0.91 ? 0.55 : 1);
+    moonLight.intensity = 1.18 * (eclipse > 0.91 ? 0.7 : 1);
+    hemi.intensity = 0.84 + Math.sin(t * 0.15) * 0.06;
     if (target) {
       faceMoon(target);
       moon.rotateZ(Math.sin(t * 0.05) * 0.04);

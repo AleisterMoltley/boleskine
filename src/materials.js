@@ -5,7 +5,7 @@ function toonRamp(steps = 4) {
   const data = new Uint8Array(steps * 4);
   for (let i = 0; i < steps; i++) {
     const t = i / (steps - 1);
-    const v = Math.round((Math.pow(t, 0.72) * 0.7 + 0.2) * 255);
+    const v = Math.round((Math.pow(t, 0.68) * 0.66 + 0.3) * 255);
     data[i * 4] = v;
     data[i * 4 + 1] = v;
     data[i * 4 + 2] = v;
@@ -73,10 +73,10 @@ export function createMaterials() {
   groundMap.repeat.set(28, 28);
 
   const rustGrit = canvasTex(256, 256, (g, w, h) => {
-    g.fillStyle = '#7a5848';
+    g.fillStyle = '#8a6a58';
     g.fillRect(0, 0, w, h);
     for (let i = 0; i < 5000; i++) {
-      g.fillStyle = i % 2 ? '#5a3c30' : '#9a7060';
+      g.fillStyle = i % 2 ? '#6a4a3c' : '#a88870';
       g.fillRect((Math.random() * w) | 0, (Math.random() * h) | 0, 1, 1);
     }
   });
@@ -159,9 +159,9 @@ export function createMaterials() {
       depthWrite: false,
     }),
     veil: new THREE.MeshBasicMaterial({
-      color: 0x6a4868,
+      color: 0x8a6088,
       transparent: true,
-      opacity: 0.34,
+      opacity: 0.22,
       side: THREE.DoubleSide,
       depthWrite: false,
     }),
