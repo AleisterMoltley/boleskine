@@ -300,23 +300,21 @@ export function boot(canvas) {
     }
 
     const look = input.consumeLook();
+    const looking = Math.abs(look.x) + Math.abs(look.y) > 0.2;
     if (!state.talking && !state.map && !state.journal) cam.applyLook(look.x, look.y);
-
-    camera.getWorldDirection(_camFwd);
-    if (_camFwd.lengthSq() < 1e-6) _camFwd.set(0, 0, -1);
 
     state.acc += dt;
     if (state.acc > 0.12) state.acc = 0.12;
     while (state.acc >= STEP) {
       if (!state.talking && !state.map && !state.journal && !state.won) {
-        stepPawn(pawn, STEP, input, _camFwd, obstacles);
+        stepPawn(pawn, STEP, input, cam.orbit.yaw, obstacles);
       } else {
-        pawn.vel.multiplyScalar(0.8);
+        pawn.vel.multiplyScalar(0.55);
       }
       state.acc -= STEP;
     }
 
-    cam.tick(pawn, dt, obstacles, pawn.moving);
+    cam.tick(pawn, dt, obstacles, looking);
     crowley.tick(dt, pawn, state.castCd > 0.2);
     npcs.tick(state.time);
     relics.tick(state.time);

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { FEEL } from './config.js';
 import { approach, rotateToward } from './math.js';
 import { collidePlayer } from './obstacles.js';
+import { walkFrame } from './camera.js';
 import {
   isDustPos,
   mapToPos,
@@ -73,7 +74,7 @@ function snapSurf(p) {
   let height = len - surf;
   const vRad = p.vel.x * ux + p.vel.y * uy + p.vel.z * uz;
   let grounded = false;
-  if (height <= 1.25 && vRad <= 3.4) {
+  if (height <= 0.42 && vRad <= 2.4) {
     height = 0;
     p.vel.x -= ux * vRad;
     p.vel.y -= uy * vRad;
@@ -84,19 +85,12 @@ function snapSurf(p) {
   const nr = surf + height;
   p.pos.set(ux * nr, uy * nr, uz * nr);
   p.grounded = grounded;
-  return { ux, uy, uz, surf, height };
 }
 
-export function stepPawn(p, dt, input, camFwd, obstacles) {
+export function stepPawn(p, dt, input, camYaw, obstacles) {
   upOf(p.pos, _up);
   const { east, north } = tangentBasis(_up);
-
-  _fwd.copy(camFwd);
-  wrapTangent(_fwd, _up);
-  if (_fwd.lengthSq() < 1e-6) _fwd.copy(north);
-  else _fwd.normalize();
-  _right.crossVectors(_fwd, _up).normalize();
-  _fwd.crossVectors(_up, _right).normalize();
+  walkFrame(_up, camYaw, _fwd, _right);
 
   const stick = input.wish();
   _wish.set(0, 0, 0);
@@ -111,7 +105,7 @@ export function stepPawn(p, dt, input, camFwd, obstacles) {
   p.swimming = false;
   const sprint = input.state.sprint && p.grounded && !dust && wishLen > 0.08;
   p.sprinting = sprint;
-  const cap = dust ? FEEL.walk * 0.58 : sprint ? FEEL.run : FEEL.walk;
+  const cap = dust ? FEEL.walk * 0.78 : sprint ? FEEL.run : FEEL.walk;
 
   if (input.state.jumpDown) p.jumpBuf = FEEL.jumpBuf;
   else p.jumpBuf = Math.max(0, p.jumpBuf - dt);
@@ -172,11 +166,13 @@ export function stepPawn(p, dt, input, camFwd, obstacles) {
 
   wrapTangent(p.vel, _up);
   p.speed = p.vel.length();
-  p.moving = p.speed > 0.35;
+  p.moving = p.speed > 0.28;
   if (wishLen > 0.1) {
     const we = _wish.dot(east);
     const wn = _wish.dot(north);
     p.facing = Math.atan2(we, wn);
+    p.yaw = p.facing;
+  } else {
+    p.yaw = rotateToward(p.yaw, p.facing, FEEL.turnRate * dt);
   }
-  p.yaw = rotateToward(p.yaw, p.facing, FEEL.turnRate * dt);
 }

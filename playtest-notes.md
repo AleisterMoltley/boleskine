@@ -36,3 +36,9 @@ Ask:
 2. Is "Der Jüngere" enough, or too coy?
 3. Does the mauve ground read as a place, or just a tint?
 
+## 2026-08-17 — controls rewrite
+
+Camera no longer recenters behind the walk. WASD is locked to camera yaw, not the lagged lens. Snappier accel, closer chase cam, instant facing.
+
+Ask: does W go into the screen? Does the mouse orbit stay put while you walk?
+
