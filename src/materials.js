@@ -127,5 +127,8 @@ export function createMaterials() {
     sigilGold: new THREE.MeshBasicMaterial({ color: 0xe8c86a }),
     sigilBlood: new THREE.MeshBasicMaterial({ color: 0x9a2430 }),
     sigilTeal: new THREE.MeshBasicMaterial({ color: 0x7ec8c0 }),
+    mauve: toon(PAL.mauve),
+    mauveDeep: toon(PAL.mauveDeep),
+    mauveGlow: new THREE.MeshBasicMaterial({ color: 0xb080a8 }),
   };
 }

@@ -61,5 +61,12 @@ export function createSky(scene, mats) {
     )
   );
 
+  const sirius = new THREE.Mesh(
+    new THREE.SphereGeometry(1.15, 8, 6),
+    new THREE.MeshBasicMaterial({ color: 0xd8e8ff, fog: false })
+  );
+  sirius.position.set(PLANET_R + 180, 140, 90);
+  scene.add(sirius);
+
   return { moonLight, moon, phobos, deimos, sun };
 }

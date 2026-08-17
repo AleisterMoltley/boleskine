@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { WORLD } from '../config.js';
+import { POI, WORLD } from '../config.js';
 import { heightAt, isWater, pathWidth } from '../height.js';
 import { groundR, latLonToMap, OCEAN_R, PLANET_R } from '../planet.js';
 
@@ -32,7 +32,9 @@ export function createTerrain(scene, mats) {
     const pw = pathWidth(m.x, m.z);
     const inland = Math.hypot(m.x, m.z) < WORLD.islandR + 12;
     const polar = Math.abs(lat) > 1.02;
+    const nearMauve = Math.hypot(m.x - POI.mauve.x, m.z - POI.mauve.z) < 18;
     if (polar) tmp.copy(ice);
+    else if (nearMauve) tmp.set(0x5a3848).lerp(maria, 0.35);
     else if (!inland) {
       if (r < OCEAN_R + 0.55) tmp.copy(maria);
       else tmp.copy(rustA).lerp(rustB, (Math.sin(lat * 6 + lon * 2) + 1) * 0.28);

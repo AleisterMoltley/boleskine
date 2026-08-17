@@ -154,6 +154,13 @@ function siteShape(lat, lon) {
   const se = mapToLatLon(POI.seal.x, POI.seal.z);
   const sd = ang(lat, lon, se.lat, se.lon);
   if (sd < 0.05) d += 0.25 * (1 - sd / 0.05);
+  const mv = mapToLatLon(POI.mauve.x, POI.mauve.z);
+  d += craterAt(lat, lon, mv.lat, mv.lon, 0.04, 0.09, 2.2, 0.9);
+  const ni = mapToLatLon(POI.nisis.x, POI.nisis.z);
+  const nd = ang(lat, lon, ni.lat, ni.lon);
+  if (nd < 0.08) d += 0.55 * (1 - nd / 0.08);
+  const ce = mapToLatLon(POI.cells.x, POI.cells.z);
+  d += craterAt(lat, lon, ce.lat, ce.lon, 0.038, 0.085, 2.8, 1.4);
   return d;
 }
 

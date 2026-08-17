@@ -33,6 +33,8 @@ export const PAL = {
   shadow: 0x08060c,
   rose: 0x7a1424,
   ghost: 0x8aa0b8,
+  mauve: 0x6a4868,
+  mauveDeep: 0x3a2438,
 };
 
 export const WORLD = {
@@ -100,6 +102,13 @@ export const POI = {
   polar: { x: 212.0, z: 142.0, name: 'Die Weiße Kappe' },
   orrery: { x: 236.0, z: 59.0, name: 'Die Uhr der Bahnen' },
   seal: { x: -218.0, z: 65.0, name: 'Das rote Siegel' },
+  fullness: { x: 48.0, z: -12.0, name: 'Die Fülle' },
+  daath: { x: 38.0, z: -28.0, name: 'Die Lücke' },
+  lam: { x: 10.4, z: 88.6, name: 'Die Nische' },
+  mauve: { x: -305.0, z: 22.0, name: 'Die Schwelle' },
+  nisis: { x: -148.0, z: 118.0, name: 'Die verschleierte Halle' },
+  cells: { x: 168.0, z: -118.0, name: 'Die Zellen' },
+  marks: { x: -88.0, z: 22.0, name: 'Die ungenannten Zeichen' },
 };
 
 export const PLANET_COLS = [0x2a2438, 0x3a5088, 0x8a2430, 0xc9a24a, 0x3a6840, 0xb87838, 0xb8b8c8];

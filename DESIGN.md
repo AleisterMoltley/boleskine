@@ -77,6 +77,7 @@ World is code-built (toon meshes). Image-gen key art was blocked by moderation; 
 - [x] Cairo hours, vault, chess, cairn, press, Hastings chair, hollow
 - [x] Leah, Bennett, Neuburg, Eckenstein, the poet
 - [x] Mars wrap: iron circle, crater, Cydonia, polar shrine, canal orrery, red seal
+- [x] Grant / gnosis: vesica, Daath gap, Lam niche, mauve threshold, veiled hall, 22 cells, Spare marks
 - [ ] Aiwass as a voiced sky event
 - [ ] Horse / boat
 

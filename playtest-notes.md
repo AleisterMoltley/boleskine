@@ -26,3 +26,13 @@ Ask:
 2. Does the planet feel large enough to walk?
 3. Are the new sites readable as occult without signs?
 
+## 2026-08-17 — Grant and gnosis, kept quiet
+
+Added: Die Fülle (vesica + seven lamps), Die Lücke (tree with an empty Daath), Die Nische (egg-head from the Amalantrah drawing), Die Schwelle (mauve dust), Die verschleierte Halle (eleven lights), Die Zellen (twenty-two empty recesses), ungenannte Zeichen (Spare). NPCs: Der Jüngere at Hastings, Die Verschleierte, Eine zwischen zwei Schläfen.
+
+Ask:
+
+1. Do the new sites read as meaning, or as clutter?
+2. Is "Der Jüngere" enough, or too coy?
+3. Does the mauve ground read as a place, or just a tint?
+

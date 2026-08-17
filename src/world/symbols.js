@@ -548,3 +548,132 @@ export function hoodedAdept(mats) {
   });
   return g;
 }
+
+export function vesica(mats, s = 1) {
+  const g = new THREE.Group();
+  const left = circleLine(1.15 * s, mats.stoneLite, 0.045 * s, 24);
+  left.rotation.x = -Math.PI / 2;
+  left.position.set(-0.55 * s, 0.05, 0);
+  const right = circleLine(1.15 * s, mats.stoneLite, 0.045 * s, 24);
+  right.rotation.x = -Math.PI / 2;
+  right.position.set(0.55 * s, 0.05, 0);
+  g.add(left, right);
+  return g;
+}
+
+export function treeOfLifeGap(mats) {
+  const g = new THREE.Group();
+  const nodes = [
+    [0, 3.15, true],
+    [1.15, 2.35, true],
+    [-1.15, 2.35, true],
+    [0, 1.65, false],
+    [1.15, 1.05, true],
+    [-1.15, 1.05, true],
+    [0, 0.35, true],
+    [1.15, -0.4, true],
+    [-1.15, -0.4, true],
+    [0, -1.15, true],
+    [0, -2.05, true],
+  ];
+  const paths = [
+    [0, 1],
+    [0, 2],
+    [1, 2],
+    [1, 4],
+    [2, 5],
+    [1, 6],
+    [2, 6],
+    [4, 6],
+    [5, 6],
+    [4, 7],
+    [5, 8],
+    [6, 7],
+    [6, 8],
+    [6, 9],
+    [7, 9],
+    [8, 9],
+    [9, 10],
+  ];
+  for (const [a, b] of paths) {
+    const p0 = nodes[a];
+    const p1 = nodes[b];
+    const dx = p1[0] - p0[0];
+    const dz = p1[1] - p0[1];
+    const len = Math.hypot(dx, dz);
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.03, len), mats.iron);
+    bar.position.set((p0[0] + p1[0]) * 0.5, 0.04, (p0[1] + p1[1]) * 0.5);
+    bar.rotation.y = Math.atan2(dx, dz);
+    g.add(bar);
+  }
+  for (const [x, z, filled] of nodes) {
+    if (filled) {
+      const disk = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.24, 0.07, 10), mats.goldDeep);
+      disk.position.set(x, 0.06, z);
+      g.add(disk);
+    } else {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.035, 6, 14), mats.mauve);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.set(x, 0.08, z);
+      g.add(ring);
+    }
+  }
+  return g;
+}
+
+export function lamHead(mats) {
+  const g = new THREE.Group();
+  const niche = new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.7, 0.35), mats.stoneDark);
+  niche.position.set(0, 0.85, -0.12);
+  const skull = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 8), mats.bone);
+  skull.scale.set(0.78, 1.28, 0.86);
+  skull.position.set(0, 1.05, 0.12);
+  const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), mats.eyeHole);
+  eyeL.position.set(-0.09, 1.08, 0.3);
+  eyeL.scale.set(1.15, 1.35, 0.45);
+  const eyeR = eyeL.clone();
+  eyeR.position.x = 0.09;
+  const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.02, 0.02), mats.stone);
+  mouth.position.set(0, 0.86, 0.3);
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.1, 0.28, 6), mats.bone);
+  neck.position.set(0, 0.62, 0.08);
+  g.add(niche, skull, eyeL, eyeR, mouth, neck);
+  return g;
+}
+
+export function veiledFigure(mats) {
+  const g = new THREE.Group();
+  const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.55, 1.7, 8), mats.mauveDeep);
+  robe.position.y = 0.85;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 6), mats.bone);
+  head.position.y = 1.82;
+  const veil = new THREE.Mesh(new THREE.PlaneGeometry(0.55, 0.7), mats.mauve);
+  veil.position.set(0, 1.72, 0.16);
+  const fold = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.9, 0.04), mats.mauveDeep);
+  fold.position.set(0, 1.15, 0.18);
+  fold.rotation.x = 0.12;
+  g.add(robe, head, veil, fold);
+  return g;
+}
+
+export function spareMarks(mats) {
+  const g = new THREE.Group();
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(1.7, 2.15, 0.16), mats.stoneDark);
+  slab.position.y = 1.08;
+  g.add(slab);
+  const strokes = [
+    [-0.35, 0.55, 0.55, 0.12],
+    [0.2, 0.7, 0.4, 1.1],
+    [-0.15, 0.05, 0.7, 0.35],
+    [0.35, -0.2, 0.28, 1.4],
+    [-0.4, -0.45, 0.5, 0.6],
+    [0.05, -0.7, 0.42, 2.2],
+  ];
+  for (const [x, y, len, rot] of strokes) {
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(len, 0.035, 0.03), mats.mauveGlow);
+    bar.position.set(x, 1.05 + y, 0.1);
+    bar.rotation.z = rot;
+    g.add(bar);
+  }
+  return g;
+}

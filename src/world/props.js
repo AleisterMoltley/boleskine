@@ -13,16 +13,21 @@ import {
   hastingsChair,
   hoodedAdept,
   jachinBoaz,
+  lamHead,
   lectern,
   mosaicPavement,
   orreryRings,
   pentagonPavement,
   press,
   roseWindow,
+  spareMarks,
   threeHours,
   tracingBoard,
+  treeOfLifeGap,
   unicursal,
   vaultHeptagon,
+  veiledFigure,
+  vesica,
 } from './symbols.js';
 
 function shadowize(root) {
@@ -459,6 +464,163 @@ export function redSeal(mats) {
   return shadowize(g);
 }
 
+export function fullnessChapel(mats) {
+  const g = new THREE.Group();
+  const dais = new THREE.Mesh(new THREE.CylinderGeometry(3.8, 4.1, 0.16, 12), mats.stone);
+  dais.position.y = 0.07;
+  const hoopL = new THREE.Mesh(new THREE.TorusGeometry(1.55, 0.07, 8, 28), mats.bone);
+  hoopL.position.set(-0.7, 1.55, 0);
+  const hoopR = hoopL.clone();
+  hoopR.position.x = 0.7;
+  g.add(dais, hoopL, hoopR);
+  for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * Math.PI * 2 - Math.PI / 2;
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.07, 1.35, 6), mats.bone);
+    post.position.set(Math.cos(a) * 2.4, 0.75, Math.sin(a) * 2.4);
+    const flame = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 5), mats.glowGold);
+    flame.position.set(Math.cos(a) * 2.4, 1.5, Math.sin(a) * 2.4);
+    g.add(post, flame);
+  }
+  const light = new THREE.PointLight(0xe8d6a0, 0.85, 11, 2);
+  light.position.set(0, 1.6, 0);
+  g.add(light);
+  return shadowize(g);
+}
+
+export function daathTree(mats) {
+  const g = new THREE.Group();
+  const nodes = [
+    [0, 3.15, true],
+    [1.15, 2.35, true],
+    [-1.15, 2.35, true],
+    [0, 1.65, false],
+    [1.15, 1.05, true],
+    [-1.15, 1.05, true],
+    [0, 0.35, true],
+    [1.15, -0.4, true],
+    [-1.15, -0.4, true],
+    [0, -1.15, true],
+    [0, -2.05, true],
+  ];
+  const paths = [
+    [0, 1],
+    [0, 2],
+    [1, 2],
+    [1, 4],
+    [2, 5],
+    [1, 6],
+    [2, 6],
+    [4, 6],
+    [5, 6],
+    [4, 7],
+    [5, 8],
+    [6, 7],
+    [6, 8],
+    [6, 9],
+    [7, 9],
+    [8, 9],
+    [9, 10],
+  ];
+  const slab = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.08, 6.8), mats.woodDeep);
+  slab.position.y = 0.03;
+  g.add(slab);
+  for (const [a, b] of paths) {
+    const p0 = nodes[a];
+    const p1 = nodes[b];
+    const dx = p1[0] - p0[0];
+    const dz = p1[1] - p0[1];
+    const len = Math.hypot(dx, dz);
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.04, len), mats.iron);
+    bar.position.set((p0[0] + p1[0]) * 0.5, 0.08, (p0[1] + p1[1]) * 0.5);
+    bar.rotation.y = Math.atan2(dx, dz);
+    g.add(bar);
+  }
+  for (const [x, z, filled] of nodes) {
+    if (filled) {
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 0.55, 6), mats.iron);
+      stem.position.set(x, 0.32, z);
+      const orb = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), mats.goldDeep);
+      orb.position.set(x, 0.68, z);
+      g.add(stem, orb);
+    } else {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.035, 6, 14), mats.mauve);
+      ring.position.set(x, 0.72, z);
+      g.add(ring);
+    }
+  }
+  return shadowize(g);
+}
+
+export function lamNiche(mats) {
+  const g = new THREE.Group();
+  g.add(lamHead(mats));
+  const light = new THREE.PointLight(0xc4b8a0, 0.55, 6, 2);
+  light.position.set(0, 1.2, 0.4);
+  g.add(light);
+  return shadowize(g);
+}
+
+export function mauveThreshold(mats) {
+  const g = new THREE.Group();
+  const bowl = new THREE.Mesh(new THREE.CylinderGeometry(5.2, 5.8, 0.18, 12), mats.mauveDeep);
+  bowl.position.y = 0.06;
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(3.4, 0.08, 6, 20), mats.mauve);
+  ring.rotation.x = Math.PI / 2;
+  ring.position.y = 0.16;
+  g.add(bowl, ring);
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2;
+    const stone = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.6 + (i % 2) * 0.5, 0.18), mats.mauveDeep);
+    stone.position.set(Math.cos(a) * 4.4, 0.9, Math.sin(a) * 4.4);
+    stone.rotation.y = a;
+    stone.rotation.z = Math.sin(i) * 0.12;
+    g.add(stone);
+  }
+  const haze = new THREE.PointLight(0xa06090, 1.15, 16, 2);
+  haze.position.set(0, 2.0, 0);
+  g.add(haze);
+  return shadowize(g);
+}
+
+export function nisisHall(mats) {
+  const g = new THREE.Group();
+  const floor = new THREE.Mesh(new THREE.CylinderGeometry(6.2, 6.6, 0.16, 11), mats.stoneDark);
+  floor.position.y = 0.06;
+  g.add(floor);
+  for (let i = 0; i < 11; i++) {
+    const a = (i / 11) * Math.PI * 2 - Math.PI / 2;
+    const col = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.2, 2.8, 6), i % 2 ? mats.mauveDeep : mats.stoneDark);
+    col.position.set(Math.cos(a) * 5.2, 1.4, Math.sin(a) * 5.2);
+    const flame = new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 5), mats.mauveGlow);
+    flame.position.set(Math.cos(a) * 5.2, 2.95, Math.sin(a) * 5.2);
+    g.add(col, flame);
+  }
+  const figure = veiledFigure(mats);
+  figure.position.y = 0.02;
+  const light = new THREE.PointLight(0x9060a0, 0.95, 14, 2);
+  light.position.set(0, 2.6, 0);
+  g.add(figure, light);
+  return shadowize(g);
+}
+
+export function setCells(mats) {
+  const g = new THREE.Group();
+  for (let i = 0; i < 22; i++) {
+    const a = (i / 22) * Math.PI * 2;
+    const niche = new THREE.Mesh(new THREE.BoxGeometry(0.78, 1.85, 0.48), mats.robeDeep);
+    niche.position.set(Math.cos(a) * 6.4, 0.92, Math.sin(a) * 6.4);
+    niche.rotation.y = a + Math.PI;
+    const void_ = new THREE.Mesh(new THREE.BoxGeometry(0.46, 1.15, 0.08), mats.eyeHole);
+    void_.position.set(Math.cos(a) * 6.16, 0.98, Math.sin(a) * 6.16);
+    void_.rotation.y = a + Math.PI;
+    g.add(niche, void_);
+  }
+  const pit = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.4, 0.12, 16), mats.iron);
+  pit.position.y = 0.04;
+  g.add(pit);
+  return shadowize(g);
+}
+
 export function nessie(mats) {
   const g = new THREE.Group();
   const neck = new THREE.Mesh(new THREE.CapsuleGeometry(0.35, 2.4, 4, 8), mats.stoneDark);
@@ -599,7 +761,55 @@ export function populate(scene, mats, obstacles) {
   plant(sealG, POI.seal.x, POI.seal.z, 0.15);
   obstacles.cyl(POI.seal.x, POI.seal.z, 0, 1.8, 0.28, 'lamp');
 
-  for (const site of [POI.iron, POI.crater, POI.cydonia, POI.polar, POI.orrery, POI.seal]) {
+  plant(fullnessChapel(mats), POI.fullness.x, POI.fullness.z, 0.2);
+  obstacles.cyl(POI.fullness.x, POI.fullness.z, 0, 1.2, 1.1, 'desk');
+
+  plant(daathTree(mats), POI.daath.x, POI.daath.z, 0.05);
+  obstacles.box(POI.daath.x, POI.daath.z, 0, 0.4, 2.1, 3.2, 0, 'desk');
+
+  plant(lamNiche(mats), POI.lam.x, POI.lam.z, Math.PI);
+  obstacles.box(POI.lam.x, POI.lam.z, 0, 1.8, 0.6, 0.28, Math.PI, 'desk');
+
+  plant(mauveThreshold(mats), POI.mauve.x, POI.mauve.z, 0.15);
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2;
+    obstacles.box(
+      POI.mauve.x + Math.cos(a) * 4.4,
+      POI.mauve.z + Math.sin(a) * 4.4,
+      0,
+      2.1,
+      0.22,
+      0.14,
+      a,
+      'menhir'
+    );
+  }
+
+  plant(nisisHall(mats), POI.nisis.x, POI.nisis.z, 0.1);
+  for (let i = 0; i < 11; i++) {
+    const a = (i / 11) * Math.PI * 2;
+    obstacles.cyl(POI.nisis.x + Math.cos(a) * 5.2, POI.nisis.z + Math.sin(a) * 5.2, 0, 3.0, 0.22, 'col');
+  }
+
+  plant(setCells(mats), POI.cells.x, POI.cells.z, 0.2);
+  for (let i = 0; i < 22; i++) {
+    const a = (i / 22) * Math.PI * 2;
+    obstacles.box(
+      POI.cells.x + Math.cos(a) * 6.4,
+      POI.cells.z + Math.sin(a) * 6.4,
+      0,
+      1.2,
+      0.38,
+      0.24,
+      a + Math.PI,
+      'vault'
+    );
+  }
+
+  plant(spareMarks(mats), POI.marks.x, POI.marks.z, 0.4);
+  obstacles.box(POI.marks.x, POI.marks.z, 0, 2.2, 0.9, 0.14, 0.4, 'desk');
+
+  for (const site of [POI.iron, POI.crater, POI.cydonia, POI.polar, POI.orrery, POI.seal, POI.mauve, POI.nisis, POI.cells]) {
     for (let i = 0; i < 10; i++) {
       const a = hash2(site.x + i, site.z) * Math.PI * 2;
       const d = 10 + hash2(i, site.z) * 16;

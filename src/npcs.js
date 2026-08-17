@@ -235,6 +235,45 @@ export function createNpcs(scene, mats) {
     ]
   );
 
+  const clerk = body(mats, mats.skin, mats.mauve || mats.stone, 0.96);
+  add(
+    'secretary',
+    'Der Jüngere',
+    POI.nether.x - 3.2,
+    POI.nether.z + 2.4,
+    clerk,
+    [
+      'Ich habe abgeschrieben, bis die Hand taub war. Das Blatt mit dem Kopf habe ich nicht abgeschrieben. Es hat mich angesehen.',
+      'Du zählst zehn. Unter den Pfaden liegen noch einmal so viele. Ich gehe sie, wenn du schläfst.',
+    ]
+  );
+
+  const veil = body(mats, mats.bone, mats.mauve || mats.robe, 1.08);
+  add(
+    'veiled',
+    'Die Verschleierte',
+    POI.nisis.x + 3.6,
+    POI.nisis.z - 2.2,
+    veil,
+    [
+      'Elf Lichter. Nicht zwölf. Das Zwölfte wäre ein Planet, den niemand gefunden hat.',
+      'Der Schleier ist nicht zum Lüften. Er ist die Arbeit.',
+    ]
+  );
+
+  const sleeper = body(mats, mats.ghost, mats.mauve || mats.ghost, 1.0);
+  add(
+    'sleeper',
+    'Eine zwischen zwei Schläfen',
+    POI.mauve.x + 2.8,
+    POI.mauve.z + 1.6,
+    sleeper,
+    [
+      'Hier träumt man nicht. Hier ist man auch nicht wach. Die Farbe hält die Mitte.',
+      'Wer zählt, verpasst sie. Wer steht, merkt, dass der Staub sich umfärbt.',
+    ]
+  );
+
   const perch = mapToPos(POI.plaza.x + 3.5, POI.plaza.z - 6, 1.6);
   raven.position.copy(perch);
   const ravenNpc = list.find((n) => n.id === 'aiwass');
