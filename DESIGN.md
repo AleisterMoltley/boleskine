@@ -21,6 +21,7 @@ You are Aleister Crowley on Mars: Boleskine and the rest of his life sit on a ru
 
 ## Pillars
 
+- **The walk is the degree.** One next place, never a shopping list. Rose directs; the HUD does not.
 - **Movement first:** capsule controller, coyote jump, radial gravity, feet planted on the land mesh.
 - **Collision is the mesh:** pawn snaps to a ray against the displaced sphere, not the mathematical radius.
 - **Readable occult, not gore:** lodge geometry, correspondences, no billboard slogans.
@@ -82,7 +83,10 @@ World is code-built (toon meshes). Image-gen key art was blocked by moderation; 
 - [x] Path edges, grit texture, ten chapter-stones (most of the planet still empty)
 - [x] Night atmosphere: watching moon, fog, watchers, wisps
 - [x] Walkable moonlight + path lamps; trees/stones/menhirs on the continent; watchers on every walk
-- [ ] Aiwass as a voiced sky event
+- [x] Mood director: house, plaza, wood, village, kirk, far side each have their own weather
+- [x] Opening: moon first, HUD sleeps, Crowley's line before the chrome
+- [x] Finale: circle lights, a figure in the column, R is a held operation
+- [x] Burton pines instead of mushroom crowns
 - [ ] Horse / boat
 
 ## Future / nice to have

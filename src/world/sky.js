@@ -108,7 +108,7 @@ export function createSky(scene, mats) {
 
   const dome = new THREE.Mesh(
     new THREE.SphereGeometry(1380, 32, 20),
-    new THREE.MeshBasicMaterial({ map: skyCanvas(), side: THREE.BackSide, fog: false, depthWrite: false })
+    new THREE.MeshBasicMaterial({ map: skyCanvas(), side: THREE.BackSide, fog: false, depthWrite: false, color: 0xffffff })
   );
   scene.add(dome);
 
@@ -295,12 +295,7 @@ export function createSky(scene, mats) {
     deimos.rotation.y = t * 0.05;
     sirius.scale.setScalar(1 + Math.sin(t * 2.2) * 0.12);
     traces.rotation.y = t * 0.002;
-    scene.fog.density = 0.0028 + Math.sin(t * 0.13) * 0.0006;
-    const wash = 0.5 + Math.sin(t * 0.09) * 0.5;
-    scene.fog.color.setHex(wash > 0.5 ? 0x4a3048 : 0x5a2838);
-    const eclipse = Math.sin(t * 0.07);
-    moonLight.intensity = 1.18 * (eclipse > 0.91 ? 0.7 : 1);
-    hemi.intensity = 0.84 + Math.sin(t * 0.15) * 0.06;
+    skyApi.eclipse = Math.sin(t * 0.07) > 0.91 ? 0.7 : 1;
     if (target) {
       faceMoon(target);
       moon.rotateZ(Math.sin(t * 0.05) * 0.04);
@@ -328,5 +323,6 @@ export function createSky(scene, mats) {
     }
   }
 
-  return { moonLight, moon, phobos, deimos, sun: dusk, hemi, tick };
+  const skyApi = { moonLight, moon, phobos, deimos, sun: dusk, hemi, fill, dome, tick, eclipse: 1 };
+  return skyApi;
 }

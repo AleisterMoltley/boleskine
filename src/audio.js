@@ -104,14 +104,32 @@ export function createAudio() {
         startAmbience();
       }
     },
+    setPlace(mood) {
+      if (!ctx || !drone) return;
+      const now = ctx.currentTime;
+      drone.o1.frequency.setTargetAtTime(mood.drone, now, 0.6);
+      drone.o3.frequency.setTargetAtTime(mood.droneHi, now, 0.6);
+      drone.wind.gain.setTargetAtTime(mood.wind + 0.008, now, 0.5);
+    },
+    arrive() {
+      tone(196, 1.1, 'sine', 0.03);
+      tone(147, 1.5, 'triangle', 0.018, 0.08);
+    },
+    ready() {
+      tone(220, 0.8, 'sine', 0.045);
+      tone(330, 1.2, 'triangle', 0.03, 0.12);
+      tone(440, 1.6, 'sine', 0.025, 0.28);
+    },
+    aiwass() {
+      tone(523, 2.2, 'sine', 0.035);
+      tone(784, 2.8, 'triangle', 0.022, 0.2);
+      tone(196, 3.2, 'sine', 0.03, 0.05);
+    },
     tick(dt, threat) {
       if (!ctx || !threatGain) return;
       const want = 0.0001 + threat * 0.07;
       const now = ctx.currentTime;
       threatGain.gain.setTargetAtTime(want, now, 0.12);
-      if (drone?.wind) {
-        drone.wind.gain.setTargetAtTime(0.028 + threat * 0.03, now, 0.2);
-      }
       if (threat > 0.45) {
         heartT -= dt;
         if (heartT <= 0) {
@@ -143,17 +161,20 @@ export function createAudio() {
       tone(92, 0.28, 'square', 0.07);
     },
     ritual() {
-      tone(196, 0.45, 'sine', 0.055);
-      tone(294, 0.55, 'triangle', 0.04, 0.1);
-      tone(392, 0.8, 'sine', 0.035, 0.2);
+      tone(196, 0.55, 'sine', 0.05);
+      tone(294, 0.7, 'triangle', 0.038, 0.12);
+      tone(392, 1.1, 'sine', 0.032, 0.24);
+      tone(588, 1.4, 'sine', 0.022, 0.4);
     },
     talk() {
       tone(160 + Math.random() * 36, 0.08, 'triangle', 0.035);
     },
     win() {
-      tone(392, 0.3, 'sine', 0.055);
-      tone(523, 0.4, 'sine', 0.045, 0.15);
-      tone(659, 0.7, 'sine', 0.04, 0.3);
+      tone(261, 0.8, 'sine', 0.045);
+      tone(329, 1.0, 'sine', 0.04, 0.2);
+      tone(392, 1.2, 'sine', 0.04, 0.4);
+      tone(523, 1.6, 'sine', 0.038, 0.65);
+      tone(659, 2.2, 'triangle', 0.03, 0.95);
     },
   };
 }

@@ -213,13 +213,13 @@ export function dressWorld(scene, mats, obstacles, plant) {
   const boulder = pool(scene, new THREE.DodecahedronGeometry(0.95, 0), mats.stone, 900);
   const rust = pool(scene, new THREE.DodecahedronGeometry(0.9, 0), mats.sand, 700);
   const menhir = pool(scene, new THREE.BoxGeometry(0.42, 2.15, 0.2), mats.stoneDark, 420);
-  const trunk = pool(scene, new THREE.CylinderGeometry(0.16, 0.26, 4.1, 6), mats.woodDeep, 520);
-  const crown = pool(scene, new THREE.SphereGeometry(1.15, 6, 5), mats.leaf, 520);
+  const trunk = pool(scene, new THREE.CylinderGeometry(0.13, 0.22, 3.4, 6), mats.woodDeep, 520);
+  const crown = pool(scene, new THREE.ConeGeometry(0.95, 2.8, 7), mats.leaf, 520);
   const bush = pool(scene, new THREE.SphereGeometry(0.62, 6, 5), mats.leaf, 480);
 
   function treeAt(x, z, yaw, sc) {
-    push(trunk, x, z, 2.05, yaw, sc, sc, sc);
-    push(crown, x, z, 4.15, yaw, 1.35 * sc, 0.42 * sc, 1.15 * sc);
+    push(trunk, x, z, 1.7, yaw, sc, 1.05 * sc, sc);
+    push(crown, x, z, 4.05, yaw, sc * 0.95, sc, sc * 0.95);
   }
 
   for (const p of PATHS) {

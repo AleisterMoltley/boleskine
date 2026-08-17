@@ -378,3 +378,50 @@ export const ENDING = {
   title: 'Die Unterredung',
   body: 'Nicht der Mond öffnet sich. Etwas, das ich den Heiligen Schutzengel genannt habe — und das Buch einen Stern in jedem Mann und jeder Frau. Das Gesetz bleibt ein Satz, den ich nicht erfunden habe. Die Arbeit hält, solange man sie tut.',
 };
+
+function has(taken, id) {
+  return taken.includes(id);
+}
+
+export function nextDegree({ memories, taken, placed, won }) {
+  if (won) return ENDING.title;
+  if (!memories.has('manor') && !memories.has('chess') && !memories.has('cairo')) {
+    return 'Tritt vor das Haus.';
+  }
+  if (!has(taken, 'liber')) return 'Hinter dem Haus liegt ein Heft.';
+  if (!has(taken, 'athame') && !has(taken, 'oil')) return 'Die Kirche steht schief. Oder die Weide.';
+  if (!has(taken, 'wand')) return 'Im Wald hat jemand den Atem gezählt.';
+  if (!has(taken, 'pantacle')) return 'Im Dorf ein Brunnen, den niemand leert.';
+  if (!has(taken, 'chalice')) return 'Am Kai endet ein Steg ohne Wasser.';
+  if (!has(taken, 'stele')) return 'Die Abtei. Ein Hof ohne Gemeinde.';
+  if (placed < 7) return 'Der Hof. Was du getragen hast, gehört dorthin zurück.';
+  return 'Halt still auf dem Pflaster.';
+}
+
+export function roseSays({ memories, taken, placed }) {
+  if (!memories.has('manor') && !memories.has('chess')) {
+    return 'Nicht zu mir. Zum Haus. Es kennt dich länger als ich.';
+  }
+  if (!has(taken, 'liber')) {
+    return 'Hinter den Mauern, am Pult. Ein Heft, das sich für ein Gesetz hält.';
+  }
+  if (!has(taken, 'athame') && !has(taken, 'oil')) {
+    return 'Die Kirche hat ein Fenster, älter als die Gemeinde. Stahl darunter. Unter der Weide tropft etwas, das ich nicht gesalbt habe.';
+  }
+  if (!has(taken, 'wand')) {
+    return 'Bennett ist im Wald geblieben, als du nach Osten wolltest. Der Stab liegt, wo der Streit aufhörte.';
+  }
+  if (!has(taken, 'pantacle')) {
+    return 'Das Dorf hält Wärme für Heimat. Im Brunnen eine Scheibe. Kupfer. Alt.';
+  }
+  if (!has(taken, 'chalice')) {
+    return 'Der Kai hat kein Wasser. Am Ende des Stegs eine Schale, die so tut.';
+  }
+  if (!has(taken, 'stele')) {
+    return 'Leah unterrichtet noch, ohne Kinder. Im Hof der Abtei eine Platte.';
+  }
+  if (placed < 7) {
+    return 'Jetzt der Hof. Nicht als Auftrag. Als Rückkehr.';
+  }
+  return 'Halt still. Nicht ich rede als Nächstes.';
+}

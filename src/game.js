@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { POI, RELICS, WORLD } from './config.js';
-import { ENDING, MEMORIES } from './lore.js';
+import { ENDING, MEMORIES, RELIC_NOTES, nextDegree, roseSays } from './lore.js';
 import { createInput } from './input.js';
 import { createMaterials } from './materials.js';
 import { createObstacles } from './obstacles.js';
@@ -16,6 +16,8 @@ import { createCombat } from './combat.js';
 import { createRelics } from './relics.js';
 import { createAudio } from './audio.js';
 import { createHud } from './hud.js';
+import { createFinale } from './finale.js';
+import { ARRIVALS, createMood } from './mood.js';
 import { dist2 } from './math.js';
 import { mapToPos, setLandMesh, tangentBasis, upOf } from './planet.js';
 const STEP = 1 / 60;
@@ -69,22 +71,11 @@ export function boot(canvas) {
   const input = createInput(canvas);
   const audio = createAudio();
   const hud = createHud();
+  const mood = createMood(scene, sky, renderer);
+  const finale = createFinale(scene, mats);
 
   const fx = new THREE.Group();
   scene.add(fx);
-  const gate = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.55, 1.4, 28, 10, 1, true),
-    new THREE.MeshBasicMaterial({
-      color: 0xe8d6a0,
-      transparent: true,
-      opacity: 0,
-      side: THREE.DoubleSide,
-      depthWrite: false,
-    })
-  );
-  const gatePos = mapToPos(POI.plaza.x, POI.plaza.z, 8);
-  gate.position.copy(gatePos);
-  scene.add(gate);
 
   const state = {
     playing: false,
@@ -106,22 +97,31 @@ export function boot(canvas) {
     hurtFlash: 0,
     lockGrace: 0,
     memories: new Set(),
+    awake: false,
+    awakeIn: 0,
+    lastPlace: '',
+    didLock: false,
+    winIn: 0,
+    hintT: 8,
   };
 
+  function degree() {
+    return {
+      memories: state.memories,
+      taken: relics.items.filter((i) => i.taken).map((i) => i.id),
+      placed: relics.placedCount(),
+      won: state.won,
+      metRose: state.metRose,
+    };
+  }
+
   function questText() {
-    if (state.won) return ENDING.title;
-    const taken = relics.takenCount();
-    const placed = relics.placedCount();
-    if (taken === 0 && !state.metRose) return 'Sprich mit der Frau in Rot.';
-    if (taken === 0) return 'Finde die sieben Werkzeuge der Operation.';
-    if (placed < 7 && taken < 7) return `Dinge ${taken}/7 — bring sie auf den Hof.`;
-    if (placed < 7) return `Setze sie auf die Sockel (${placed}/7).`;
-    return 'Halt R auf dem Pflaster.';
+    return nextDegree(degree());
   }
 
   function talkTo(npc) {
-    const line = npc.lines[npc.i % npc.lines.length];
-    npc.i++;
+    const line = npc.id === 'rose' ? roseSays(degree()) : npc.lines[npc.i % npc.lines.length];
+    if (npc.id !== 'rose') npc.i++;
     state.talking = npc;
     hud.openDialogue(npc.name, line);
     audio.talk();
@@ -143,7 +143,8 @@ export function boot(canvas) {
     if (it) {
       relics.take(it);
       audio.pickup();
-      hud.toast(`${it.name} — genommen.`);
+      const note = RELIC_NOTES[it.id];
+      hud.toast(note ? note.title : it.name);
       return;
     }
     const ped = relics.nearestPed(pawn.x, pawn.z);
@@ -152,8 +153,7 @@ export function boot(canvas) {
       if (have) {
         relics.place(have, ped);
         audio.pickup();
-        hud.toast(`${have.name} steht.`);
-        if (relics.placedCount() === 7) hud.toast('Sieben. Der Kreis ist bereit.');
+        hud.toast(`${have.name} kehrt zurück.`);
       } else {
         const name = RELICS.find((r) => r.id === ped.id)?.name;
         hud.toast(`Sockel für ${name}.`);
@@ -231,10 +231,19 @@ export function boot(canvas) {
   function start() {
     if (state.playing) return;
     state.playing = true;
+    state.awake = false;
+    state.awakeIn = 3.2;
+    document.body.classList.add('playing');
     hud.hideTitle();
+    hud.sleepHud();
     audio.resume();
-    input.tryLock();
+    cam.orbit.pitch = -0.2;
+    cam.orbit.yaw = Math.PI;
     cam.snap(pawn, obstacles);
+    input.tryLock();
+    setTimeout(() => {
+      if (!state.won) hud.toast('Der Mond hat zuerst gesehen.');
+    }, 1400);
   }
 
   document.getElementById('title')?.addEventListener('click', start);
@@ -281,6 +290,7 @@ export function boot(canvas) {
       world.tick?.(t);
       sky.tick?.(t, look);
       dream.tick?.(t, dt, pawn);
+      mood.tick(POI.manor.x, POI.manor.z, dt, sky.eclipse);
       camera.fov = 56 + Math.sin(t * 0.11) * 1.1;
       camera.updateProjectionMatrix();
       renderer.render(scene, camera);
@@ -293,11 +303,15 @@ export function boot(canvas) {
     hud.toggleMap(state.map);
     hud.toggleJournal(state.journal, relics, questText(), state.memories);
 
-    for (const m of MEMORIES) {
-      if (state.memories.has(m.id)) continue;
-      if (dist2(pawn.x, pawn.z, m.x, m.z) < m.r * m.r) {
-        state.memories.add(m.id);
-        hud.toast(m.whisper);
+    let wrote = false;
+    if (state.awake) {
+      for (const m of MEMORIES) {
+        if (state.memories.has(m.id)) continue;
+        if (dist2(pawn.x, pawn.z, m.x, m.z) < m.r * m.r) {
+          state.memories.add(m.id);
+          hud.toast(m.whisper);
+          wrote = true;
+        }
       }
     }
     if (state.map) drawMap();
@@ -328,6 +342,8 @@ export function boot(canvas) {
     world.tick?.(state.time);
     const dread = dream.tick?.(state.time, dt, pawn) ?? 0;
     sky.tick?.(state.time, pawn.pos);
+    const felt = mood.tick(pawn.mx, pawn.mz, dt, sky.eclipse);
+    audio.setPlace(felt);
     combat.tick(dt, pawn, hurt);
     rippleWater(terrain.water, state.time);
     const shadowNear = combat.nearest(pawn.mx, pawn.mz);
@@ -335,7 +351,21 @@ export function boot(canvas) {
     audio.tick(dt, threat);
     camera.fov = 56 + Math.sin(state.time * 0.11) * 1.1 - threat * 2.2;
     camera.updateProjectionMatrix();
-    renderer.toneMappingExposure = 1.3 - threat * 0.04;
+
+    if (!state.awake) {
+      state.awakeIn -= dt;
+      if (state.awakeIn <= 0 || pawn.moving) {
+        state.awake = true;
+        hud.wakeHud();
+      }
+    }
+
+    const here = placeName(pawn.mx, pawn.mz);
+    if (state.awake && here !== state.lastPlace) {
+      if (state.lastPlace) audio.arrive();
+      if (state.lastPlace && ARRIVALS[here] && !wrote) hud.toast(ARRIVALS[here]);
+      state.lastPlace = here;
+    }
 
     {
       const np = mapToPos(8 + Math.sin(state.time * 0.15) * 10, 116 + Math.cos(state.time * 0.12) * 6, 0.3);
@@ -345,9 +375,16 @@ export function boot(canvas) {
     sky.moonLight.position.copy(sky.moon.position);
     sky.moonLight.target.position.copy(pawn.pos);
     sky.moonLight.target.updateMatrixWorld();
-    if (relics.placedCount() === 7) {
-      gate.material.opacity = Math.min(0.55, gate.material.opacity + dt * 0.2);
-      gate.rotation.y += dt * 0.35;
+    finale.tick(state.time, dt, relics.placedCount(), state.ritual, state.won, () => {
+      audio.ready();
+      audio.aiwass();
+      hud.toast('Ein Stern, der sich nicht nennt.');
+    });
+    if (state.ritual > 0) {
+      sky.moon.scale.setScalar(1 + state.ritual * 0.08);
+      cam.orbit.pitch += (-0.36 - cam.orbit.pitch) * dt * 1.4;
+    } else if (!state.won) {
+      sky.moon.scale.setScalar(1);
     }
 
     state.lockGrace = Math.max(0, state.lockGrace - dt);
@@ -372,16 +409,22 @@ export function boot(canvas) {
 
     const inPlaza = dist2(pawn.x, pawn.z, POI.plaza.x, POI.plaza.z) < 7 * 7;
     if ((input.state.ritual || input.keys.KeyR) && inPlaza && relics.placedCount() === 7 && !state.won) {
+      const was = state.ritual;
       state.ritual += dt;
-      if (state.ritual > 2.6) {
+      if (was < 0.05) audio.ritual();
+      if (state.ritual > 4.2) {
         state.won = true;
+        state.winIn = 1.35;
         state.memories.add('won');
         audio.win();
-        hud.showWin();
         input.unlock();
       }
-    } else if (!input.keys.KeyR) {
+    } else if (!input.keys.KeyR && !state.won) {
       state.ritual = Math.max(0, state.ritual - dt * 0.8);
+    }
+    if (state.won && state.winIn > 0) {
+      state.winIn -= dt;
+      if (state.winIn <= 0) hud.showWin();
     }
 
     const shrine = relics.nearestShrine(pawn.x, pawn.z);
@@ -392,7 +435,7 @@ export function boot(canvas) {
     else if (npcs.nearest(pawn.x, pawn.z)) prompt = 'E  sprechen';
     else if (relics.nearest(pawn.x, pawn.z)) prompt = 'E  aufheben';
     else if (relics.nearestPed(pawn.x, pawn.z)) prompt = 'E  setzen';
-    else if (inPlaza && relics.placedCount() === 7 && !state.won) prompt = 'R halten  —  Operation';
+    else if (inPlaza && relics.placedCount() === 7 && !state.won) prompt = 'R halten';
     hud.setPrompt(prompt);
 
     const fade = document.getElementById('hurt');
@@ -403,12 +446,20 @@ export function boot(canvas) {
     const ritualBar = document.getElementById('ritual');
     if (ritualBar) {
       ritualBar.classList.toggle('show', state.ritual > 0 && !state.won);
-      document.getElementById('ritualFill').style.transform = `scaleX(${Math.min(1, state.ritual / 2.6)})`;
+      document.getElementById('ritualFill').style.transform = `scaleX(${Math.min(1, state.ritual / 4.2)})`;
     }
 
+    if (input.state.locked) state.didLock = true;
     const lockHint = document.getElementById('lockHint');
     if (lockHint) {
-      lockHint.classList.toggle('show', state.playing && !input.state.locked && !state.map && !state.journal && !state.won);
+      lockHint.classList.toggle(
+        'show',
+        state.playing && state.awake && !state.didLock && !input.state.locked && !state.map && !state.journal && !state.won
+      );
+    }
+    if (state.awake && state.hintT > 0) {
+      state.hintT -= dt;
+      if (state.hintT <= 0) document.body.classList.add('dreaming');
     }
 
     hud.tick(dt, state.hp, state.will, cam.orbit.yaw, placeName(pawn.mx, pawn.mz), relics, questText());
@@ -424,11 +475,21 @@ export function boot(canvas) {
       if (pitch != null) cam.orbit.pitch = pitch;
       cam.snap(pawn, obstacles);
       state.playing = true;
+      state.awake = true;
+      document.body.classList.add('playing');
+      hud.wakeHud();
       hud.hideTitle();
       document.getElementById('title')?.classList.add('hide');
     },
     pawn,
     poi: POI,
+    ready() {
+      for (const it of relics.items) {
+        const ped = relics.pedestals.find((p) => p.id === it.id);
+        if (!it.taken) relics.take(it);
+        if (ped && !it.placed) relics.place(it, ped);
+      }
+    },
   };
   const qs = new URLSearchParams(location.search);
   if (qs.get('play')) {
@@ -442,6 +503,7 @@ export function boot(canvas) {
         Number(qs.get('pitch') || -0.1)
       );
       document.getElementById('lockHint')?.classList.remove('show');
+      if (qs.get('ready')) window.__boleskine.ready();
     });
   }
   return { start };

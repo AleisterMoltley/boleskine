@@ -53,6 +53,24 @@ Ask:
 3. Do the tall figures threaten, or look like bugs?
 4. Too dark to walk, or just dark enough?
 
+## 2026-08-17 — the loop was a collectathon
+
+Quest no longer says "find 7 tools." First line: go to the house. Rose names one place at a time. Relic diamonds stay hidden until the first thing is in your hand. Taking a relic names a chapter, not an inventory slot.
+
+Play 5 minutes without opening the journal. You should always know the next hill, never the shopping list.
+
+## 2026-08-17 — authored close
+
+Opening belongs to the moon. Places change the air. When seven stand, a figure waits in the column. Hold R — the camera lifts, the moon grows, then the under-speech. Trees are pines, not mushrooms.
+
+Play the loop once without the journal. If you need the journal to know what to do, the world failed.
+
+## 2026-08-17 — directed places
+
+Opening: moon over the house, HUD dark, then "Der Mond hat zuerst gesehen." House is gold-warm, the plaza cooler and ceremonial, the wood darker and closer, the village amber, the far side mauve and thin. Walk house → wood → plaza and the air should change.
+
+Ask: does the wood feel like a different game than the courtyard?
+
 ## 2026-08-17 — a tick brighter, mauve-gold night
 
 Lifted moonlight and the toon floor. Sky is mauve-rose, fog tints the distance, teal fill in the shadows. Vignette is a wash, not a black hole.

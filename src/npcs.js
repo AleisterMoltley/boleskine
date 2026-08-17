@@ -52,9 +52,7 @@ export function createNpcs(scene, mats) {
     POI.spawn.z + 1.8,
     rose,
     [
-      'Die Arbeit im Haus ist unvollständig. Sieben Dinge fehlen. Du weißt welche.',
-      'Unten auf dem Pflaster wartet der Kreis. Nicht eilen. Erst das Pult im Arbeitszimmer.',
-      'Was du willst, ist das Gesetz — aber zuerst: sieh dich um, nicht hinunter.',
+      'Nicht zu mir. Zum Haus.',
     ]
   );
 

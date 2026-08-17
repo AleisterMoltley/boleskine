@@ -31,7 +31,10 @@
       user-select: none;
     }
     canvas { display: block; }
-    #hud { pointer-events: none; }
+    #hud { pointer-events: none; transition: opacity 1.4s ease; }
+    body:not(.playing) #hud { opacity: 0; }
+    #hud.asleep { opacity: 0; }
+    #hud.asleep #lockHint.show { opacity: 0; }
     #hp, #willWrap {
       position: fixed;
       left: max(18px, env(safe-area-inset-left));
@@ -77,7 +80,7 @@
     }
     #relics {
       margin-top: 10px;
-      display: flex;
+      display: none;
       gap: 6px;
       justify-content: flex-end;
     }
@@ -126,7 +129,9 @@
       letter-spacing: 0.08em;
       opacity: 0.7;
       text-align: center;
+      transition: opacity 1.2s ease;
     }
+    body.dreaming #hint { opacity: 0; }
     #lockHint {
       position: fixed;
       left: 50%;
@@ -219,9 +224,14 @@
     #win {
       display: none;
       justify-content: center;
-      background: rgba(7, 6, 15, 0.72);
+      background: rgba(8, 6, 14, 0.62);
+      opacity: 0;
     }
-    #win.show { display: flex; }
+    #win.show {
+      display: flex;
+      opacity: 1;
+      transition: opacity 1.4s ease;
+    }
     #dialogue {
       display: none;
       position: fixed;
@@ -367,7 +377,7 @@
     <div id="willWrap"><div class="track"><div id="willFill"></div></div></div>
     <div id="meta">
       <div id="place">Boleskine</div>
-      <div id="quest">Sprich mit der Frau in Rot.</div>
+      <div id="quest">Tritt vor das Haus.</div>
       <div id="relics"></div>
     </div>
     <div id="toast"></div>
@@ -402,8 +412,8 @@
   </div>
   <div id="title">
     <h1>BOLESKINE</h1>
-    <p>Do what thou wilt shall be the whole of the Law.<br />Die Abramelin-Operation ist zerrissen. Du bist Crowley, auf dem roten Planeten. Hol die sieben Werkzeuge zurück.</p>
-    <div class="go">Klicken und eintreten</div>
+    <p>Der Mond hat das Haus zuerst gesehen.<br />Tritt vor die Tür. Der Rest schreibt sich unter den Füßen.</p>
+    <div class="go">Eintreten</div>
   </div>
   <div id="win">
     <h2>LOVE IS THE LAW</h2>

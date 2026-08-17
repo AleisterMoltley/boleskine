@@ -38,6 +38,12 @@ export function createHud() {
   }
 
   function syncRelics(relics) {
+    const known = relics.takenCount() > 0;
+    relicsEl.style.display = known ? 'flex' : 'none';
+    if (!known) {
+      relicsEl.innerHTML = '';
+      return;
+    }
     relicsEl.innerHTML = RELICS.map((r) => {
       const it = relics.items.find((i) => i.id === r.id);
       const st = it.placed ? 'placed' : it.taken ? 'taken' : '';
@@ -79,7 +85,7 @@ export function createHud() {
         : '';
       journalBody.innerHTML =
         `<p class="q">${quest}</p>` +
-        `<p class="sub">${found.length} Seiten der Beichte · ${relics.takenCount()}/7 Dinge</p>` +
+        `<p class="sub">${found.length} Seiten. Der Rest schreibt sich unter den Füßen.</p>` +
         (chaps || '<p class="sub">Geh. Der Text schreibt sich, wo du stehst.</p>') +
         notes +
         end;
@@ -88,6 +94,18 @@ export function createHud() {
 
   function hideTitle() {
     titleEl.classList.add('hide');
+  }
+
+  function sleepHud() {
+    document.getElementById('hud')?.classList.add('asleep');
+  }
+
+  function wakeHud() {
+    document.getElementById('hud')?.classList.remove('asleep');
+  }
+
+  function hudAsleep() {
+    return document.getElementById('hud')?.classList.contains('asleep');
   }
 
   function showWin() {
@@ -119,6 +137,9 @@ export function createHud() {
     toggleMap,
     toggleJournal,
     hideTitle,
+    sleepHud,
+    wakeHud,
+    hudAsleep,
     showWin,
     tick,
     hintEl,
