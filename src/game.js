@@ -15,12 +15,12 @@ import { createCombat } from './combat.js';
 import { createRelics } from './relics.js';
 import { createAudio } from './audio.js';
 import { createHud } from './hud.js';
-import { heightAt } from './height.js';
 import { dist2 } from './math.js';
+import { mapToPos, tangentBasis, upOf } from './planet.js';
 const STEP = 1 / 60;
 
 function placeName(x, z) {
-  let best = 'Die Nachtinsel';
+  let best = 'Die Nachtkugel';
   let bd = 38 * 38;
   for (const k of Object.keys(POI)) {
     const p = POI[k];
@@ -44,12 +44,11 @@ export function boot(canvas) {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(64, innerWidth / innerHeight, 0.18, 420);
+  const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.2, 320);
   const _camFwd = new THREE.Vector3();
-  camera.position.set(-20, 22, 48);
 
   const mats = createMaterials();
-  createSky(scene, mats);
+  const sky = createSky(scene, mats);
   const terrain = createTerrain(scene, mats);
   const obstacles = createObstacles();
   const world = populate(scene, mats, obstacles);
@@ -80,7 +79,8 @@ export function boot(canvas) {
       depthWrite: false,
     })
   );
-  gate.position.set(POI.plaza.x, heightAt(POI.plaza.x, POI.plaza.z) + 14, POI.plaza.z);
+  const gatePos = mapToPos(POI.plaza.x, POI.plaza.z, 8);
+  gate.position.copy(gatePos);
   scene.add(gate);
 
   const state = {
@@ -178,7 +178,7 @@ export function boot(canvas) {
     if (state.castCd > 0 || state.will < 10 || state.talking) return;
     state.will -= 10;
     state.castCd = 0.42;
-    combat.fire(pawn, pawn.yaw);
+    combat.fire(pawn);
     audio.cast();
   }
 
@@ -258,10 +258,16 @@ export function boot(canvas) {
 
     if (!state.playing) {
       const t = state.time;
-      camera.position.set(-58 + Math.sin(t * 0.08) * 5, 17.5, 78 + Math.cos(t * 0.08) * 3);
-      camera.lookAt(POI.manor.x + 2, heightAt(POI.manor.x, POI.manor.z) + 5.5, POI.manor.z - 6);
-      world.ness.position.x = 8 + Math.sin(t * 0.15) * 10;
-      world.ness.position.z = 124 + Math.cos(t * 0.12) * 6;
+      const look = mapToPos(POI.manor.x, POI.manor.z, 4);
+      const up = upOf(look);
+      const { east, north } = tangentBasis(up);
+      camera.position
+        .copy(look)
+        .addScaledVector(up, 16)
+        .addScaledVector(east, Math.sin(t * 0.12) * 22)
+        .addScaledVector(north, 14 + Math.cos(t * 0.12) * 8);
+      camera.up.copy(up);
+      camera.lookAt(look);
       rippleWater(terrain.water, t);
       npcs.tick(t);
       relics.tick(t);
@@ -292,18 +298,15 @@ export function boot(canvas) {
     if (!state.talking && !state.map && !state.journal) cam.applyLook(look.x, look.y);
 
     camera.getWorldDirection(_camFwd);
-    _camFwd.y = 0;
-    if (_camFwd.lengthSq() < 1e-6) _camFwd.set(-Math.sin(cam.orbit.yaw), 0, -Math.cos(cam.orbit.yaw));
-    else _camFwd.normalize();
+    if (_camFwd.lengthSq() < 1e-6) _camFwd.set(0, 0, -1);
 
     state.acc += dt;
     if (state.acc > 0.12) state.acc = 0.12;
     while (state.acc >= STEP) {
       if (!state.talking && !state.map && !state.journal && !state.won) {
-        stepPawn(pawn, STEP, input, _camFwd.x, _camFwd.z, obstacles);
+        stepPawn(pawn, STEP, input, _camFwd, obstacles);
       } else {
-        pawn.vx *= 0.8;
-        pawn.vz *= 0.8;
+        pawn.vel.multiplyScalar(0.8);
       }
       state.acc -= STEP;
     }
@@ -315,10 +318,14 @@ export function boot(canvas) {
     combat.tick(dt, pawn, hurt);
     rippleWater(terrain.water, state.time);
 
-    world.ness.position.x = 8 + Math.sin(state.time * 0.15) * 10;
-    world.ness.position.z = 124 + Math.cos(state.time * 0.12) * 6;
-    world.ness.position.y = WORLD.waterY - 0.15 + Math.sin(state.time * 0.7) * 0.15;
-    world.ness.rotation.y = Math.sin(state.time * 0.1) * 0.4;
+    {
+      const np = mapToPos(8 + Math.sin(state.time * 0.15) * 10, 116 + Math.cos(state.time * 0.12) * 6, 0.3);
+      world.ness.position.copy(np);
+      upOf(np, _camFwd);
+    }
+    sky.moonLight.position.copy(pawn.pos).add(sky.moon.position.clone().normalize().multiplyScalar(50));
+    sky.moonLight.target.position.copy(pawn.pos);
+    sky.moonLight.target.updateMatrixWorld();
     if (relics.placedCount() === 7) {
       gate.material.opacity = Math.min(0.55, gate.material.opacity + dt * 0.2);
       gate.rotation.y += dt * 0.35;
@@ -383,7 +390,7 @@ export function boot(canvas) {
       lockHint.classList.toggle('show', state.playing && !input.state.locked && !state.map && !state.journal && !state.won);
     }
 
-    hud.tick(dt, state.hp, state.will, cam.orbit.yaw, placeName(pawn.x, pawn.z), relics, questText());
+    hud.tick(dt, state.hp, state.will, cam.orbit.yaw, placeName(pawn.mx, pawn.mz), relics, questText());
     renderer.render(scene, camera);
     input.endFrame();
   }
@@ -401,7 +408,6 @@ export function boot(canvas) {
     },
     pawn,
     poi: POI,
-    heightAt,
   };
   return { start };
 }

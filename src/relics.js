@@ -1,14 +1,15 @@
 import { POI, RELICS, SHRINES } from './config.js';
-import { heightAt } from './height.js';
+import { mapToPos, orientOnPlanet, upOf } from './planet.js';
 import { relicMesh } from './world/props.js';
 
 export function createRelics(scene, mats) {
   const items = RELICS.map((r) => {
     const mesh = relicMesh(mats, r.id);
-    const y = heightAt(r.x, r.z) + 1.12;
-    mesh.position.set(r.x, y, r.z);
+    const p = mapToPos(r.x, r.z, 1.12);
+    mesh.position.copy(p);
+    orientOnPlanet(mesh, upOf(p), 0);
     scene.add(mesh);
-    return { ...r, mesh, taken: false, placed: false, y };
+    return { ...r, mesh, taken: false, placed: false, base: p.clone() };
   });
 
   const pedestals = RELICS.map((r, i) => {
@@ -55,17 +56,17 @@ export function createRelics(scene, mats) {
     place(it, ped) {
       it.placed = true;
       it.mesh.visible = true;
-      const y = heightAt(ped.x, ped.z) + 0.72;
-      it.mesh.position.set(ped.x, y, ped.z);
+      const p = mapToPos(ped.x, ped.z, 0.72);
+      it.mesh.position.copy(p);
+      it.base.copy(p);
+      orientOnPlanet(it.mesh, upOf(p), 0);
     },
     tick(t) {
       for (const it of items) {
         if (it.taken && !it.placed) continue;
-        const base = it.placed
-          ? heightAt(it.mesh.position.x, it.mesh.position.z) + 0.72
-          : it.y;
-        it.mesh.position.y = base;
-        it.mesh.rotation.y = it.placed ? 0 : Math.sin(t * 0.35 + it.x) * 0.08;
+        const up = upOf(it.base);
+        it.mesh.position.copy(it.base);
+        orientOnPlanet(it.mesh, up, it.placed ? 0 : Math.sin(t * 0.35 + it.x) * 0.08);
       }
     },
     takenCount() {

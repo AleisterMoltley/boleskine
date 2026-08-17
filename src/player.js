@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { orientOnPlanet, upOf } from './planet.js';
 
 function bone(mat, r, len, seg = 6) {
   const m = new THREE.Mesh(new THREE.CapsuleGeometry(r, len, 3, seg), mat);
@@ -175,8 +176,8 @@ export function makeCrowley(mats) {
       legL.rotation.x = Math.sin(pose.bob * 4) * 0.4;
       legR.rotation.x = Math.cos(pose.bob * 4) * 0.4;
     }
-    root.position.set(pawn.x, pawn.y, pawn.z);
-    root.rotation.y = pawn.yaw;
+    root.position.copy(pawn.pos);
+    orientOnPlanet(root, upOf(pawn.pos), pawn.yaw);
   }
 
   return { root, tick, staff, head };

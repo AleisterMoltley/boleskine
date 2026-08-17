@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { PLANET_COLS, POI, WORLD } from '../config.js';
 import { hash2 } from '../math.js';
 import { heightAt, isWater, pathWidth, scatter } from '../height.js';
+import { mapToPos, orientOnPlanet, PLANET_R, upOf } from '../planet.js';
 import {
   ashlars,
   cairn,
@@ -359,9 +360,9 @@ export function populate(scene, mats, obstacles) {
   const lights = [];
 
   function plant(mesh, x, z, rot = 0, yOff = 0) {
-    const y = heightAt(x, z);
-    mesh.position.set(x, y + yOff, z);
-    mesh.rotation.y = rot;
+    const p = mapToPos(x, z, yOff);
+    mesh.position.copy(p);
+    orientOnPlanet(mesh, upOf(p), rot);
     scene.add(mesh);
     return mesh;
   }
@@ -425,6 +426,15 @@ export function populate(scene, mats, obstacles) {
     plant(mesh, t.x, t.z, t.t * 6.2);
     const y = heightAt(t.x, t.z);
     obstacles.cyl(t.x, t.z, y, y + 4.5, 0.42, 'tree');
+  }
+  for (let i = 0; i < 90; i++) {
+    const lat = (hash2(i, 3) - 0.5) * 2.1;
+    const lon = hash2(i, 8) * Math.PI * 2 - Math.PI;
+    const x = lon * PLANET_R;
+    const z = lat * PLANET_R;
+    if (Math.hypot(x, z) < WORLD.islandR + 22) continue;
+    plant(twistedTree(mats, hash2(i, 1)), x, z, hash2(i, 5) * 6);
+    obstacles.cyl(x, z, 0, 4.2, 0.4, 'tree');
   }
 
   const pumps = scatter(44, 40, (x, z) => {
@@ -496,8 +506,7 @@ export function populate(scene, mats, obstacles) {
   obstacles.platform(POI.pier.x, 89, WORLD.waterY + 0.62, 3.0, 16.5, 0);
 
   const ness = nessie(mats);
-  ness.position.set(8, WORLD.waterY - 0.2, 124);
-  scene.add(ness);
+  plant(ness, 8, 118, 0.2, 0.4);
 
   // iron fence around kirk
   for (let i = 0; i < 22; i++) {

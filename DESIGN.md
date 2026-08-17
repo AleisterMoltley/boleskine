@@ -1,7 +1,7 @@
 # GAME DESIGN — Boleskine
 
 **Status:** Playable vertical slice  
-**Tech:** Three.js r170 + Vite  
+**Tech:** Three.js r170 + Vite · spherical planet (Mosspeak-style)  
 **Art Style:** Stop-motion nightscape, Tim Burton / *Nightmare Before Christmas* — elongated puppets, spiral hills, moon-stripe lighting, toon ramps  
 **Target Platforms:** Web  
 **Last Updated:** 2026-08-16

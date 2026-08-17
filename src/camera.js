@@ -1,16 +1,19 @@
 import * as THREE from 'three';
-import { FEEL, WORLD } from './config.js';
+import { FEEL } from './config.js';
 import { approach, clamp, rotateToward } from './math.js';
-import { heightAt } from './height.js';
 import { camHit } from './obstacles.js';
+import { keepOutside, tangentBasis, upOf } from './planet.js';
 
 const _pos = new THREE.Vector3();
 const _look = new THREE.Vector3();
+const _up = new THREE.Vector3();
+const _back = new THREE.Vector3();
+const _right = new THREE.Vector3();
 
 export function createChaseCam(camera) {
   const orbit = {
-    yaw: 0.05,
-    pitch: -0.06,
+    yaw: Math.PI + 0.05,
+    pitch: -0.08,
     dist: FEEL.camDist,
     follow: FEEL.camDist,
     lift: 0,
@@ -18,23 +21,22 @@ export function createChaseCam(camera) {
   };
 
   function place(p, dist, lift) {
+    upOf(p.pos, _up);
+    const { east, north } = tangentBasis(_up);
+    const cy = Math.cos(orbit.yaw);
+    const sy = Math.sin(orbit.yaw);
     const cp = Math.cos(orbit.pitch);
     const sp = Math.sin(orbit.pitch);
-    const sy = Math.sin(orbit.yaw);
-    const cy = Math.cos(orbit.yaw);
-    const rx = Math.cos(orbit.yaw);
-    const rz = -Math.sin(orbit.yaw);
+    _back.copy(north).multiplyScalar(cy).addScaledVector(east, sy);
+    _right.copy(east).multiplyScalar(cy).addScaledVector(north, -sy);
     const sh = FEEL.camShoulder;
-    _look.set(
-      p.x + rx * sh * 0.4 - sy * 0.35,
-      p.y + FEEL.camLook,
-      p.z + rz * sh * 0.4 - cy * 0.35
-    );
-    _pos.set(
-      p.x + sy * dist * cp + rx * sh,
-      p.y + FEEL.camHeight + dist * sp + lift,
-      p.z + cy * dist * cp + rz * sh
-    );
+    _look.copy(p.pos).addScaledVector(_up, FEEL.camLook).addScaledVector(_right, sh * 0.35);
+    _pos
+      .copy(p.pos)
+      .addScaledVector(_back, dist * cp)
+      .addScaledVector(_up, FEEL.camHeight + dist * sp + lift)
+      .addScaledVector(_right, sh);
+    keepOutside(_pos, 1.4);
     const dx = _pos.x - _look.x;
     const dy = _pos.y - _look.y;
     const dz = _pos.z - _look.z;
@@ -44,15 +46,13 @@ export function createChaseCam(camera) {
 
   function keepClear(p, obstacles, dt) {
     const raw = place(p, orbit.dist, 0);
-    const blocked = camHit(_look.x, _look.y, _look.z, raw.nx, raw.ny, raw.nz, raw.len, obstacles);
+    const blocked = camHit(_look.x, _look.y, _look.z, raw.nx, raw.ny, raw.nz, raw.len, obstacles, p.mx, p.mz);
     const tight = blocked < orbit.dist * 0.82;
     orbit.lift = approach(orbit.lift, tight ? FEEL.camLift : 0, (tight ? 7 : 4) * dt);
     const want = Math.max(FEEL.camMinDist, blocked);
     if (want < orbit.follow) orbit.follow = want;
     else orbit.follow = approach(orbit.follow, want, FEEL.camRecover * dt);
     place(p, orbit.follow, orbit.lift);
-    const floor = Math.max(heightAt(_pos.x, _pos.z) + 1.35, WORLD.waterY + 1.0);
-    if (_pos.y < floor) _pos.y = floor;
   }
 
   return {
@@ -68,7 +68,7 @@ export function createChaseCam(camera) {
       orbit.lift = 0;
       keepClear(p, obstacles, 1);
       camera.position.copy(_pos);
-      camera.up.set(0, 1, 0);
+      camera.up.copy(_up);
       camera.lookAt(_look);
     },
     tick(p, dt, obstacles, moving) {
@@ -79,9 +79,9 @@ export function createChaseCam(camera) {
       keepClear(p, obstacles, dt);
       const k = 1 - Math.exp(-FEEL.camLag * dt);
       camera.position.lerp(_pos, k);
-      const floor = Math.max(heightAt(camera.position.x, camera.position.z) + 1.1, WORLD.waterY + 0.85);
-      if (camera.position.y < floor) camera.position.y = floor;
-      camera.up.set(0, 1, 0);
+      keepOutside(camera.position, 1.2);
+      upOf(p.pos, _up);
+      camera.up.copy(_up);
       camera.lookAt(_look);
     },
   };

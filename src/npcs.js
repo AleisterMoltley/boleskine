@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { POI } from './config.js';
-import { heightAt } from './height.js';
+import { mapToPos, orientOnPlanet, upOf } from './planet.js';
 
 function body(mats, skin, cloth, tall = 1) {
   const g = new THREE.Group();
@@ -31,10 +31,11 @@ export function createNpcs(scene, mats) {
   const list = [];
 
   function add(id, name, x, z, mesh, lines) {
-    const y = heightAt(x, z);
-    mesh.position.set(x, y, z);
+    const p = mapToPos(x, z);
+    mesh.position.copy(p);
+    orientOnPlanet(mesh, upOf(p), 0);
     scene.add(mesh);
-    const npc = { id, name, x, z, y, mesh, lines, i: 0 };
+    const npc = { id, name, x, z, mesh, lines, i: 0, base: p.clone() };
     list.push(npc);
     return npc;
   }
@@ -195,8 +196,10 @@ export function createNpcs(scene, mats) {
     ]
   );
 
-  const perch = heightAt(POI.plaza.x + 3.5, POI.plaza.z - 6) + 1.6;
-  raven.position.y = perch;
+  const perch = mapToPos(POI.plaza.x + 3.5, POI.plaza.z - 6, 1.6);
+  raven.position.copy(perch);
+  const ravenNpc = list.find((n) => n.id === 'aiwass');
+  if (ravenNpc) ravenNpc.base.copy(perch);
 
   return {
     list,
@@ -214,13 +217,12 @@ export function createNpcs(scene, mats) {
     },
     tick(t) {
       for (const n of list) {
-        n.mesh.rotation.y = Math.sin(t * 0.6 + n.x) * 0.15;
-        if (n.id === 'aiwass') {
-          n.mesh.position.y = perch + Math.sin(t * 2.2) * 0.12;
-        }
-        if (n.id === 'ghost') {
-          n.mesh.position.y = n.y + Math.sin(t * 1.4) * 0.18;
-        }
+        const up = upOf(n.mesh.position);
+        let lift = 0;
+        if (n.id === 'aiwass') lift = Math.sin(t * 2.2) * 0.12;
+        if (n.id === 'ghost') lift = Math.sin(t * 1.4) * 0.18;
+        n.mesh.position.copy(n.base).addScaledVector(up, lift);
+        orientOnPlanet(n.mesh, up, Math.sin(t * 0.6 + n.x) * 0.15);
       }
     },
   };

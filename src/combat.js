@@ -1,8 +1,11 @@
 import * as THREE from 'three';
 import { POI } from './config.js';
 import { hash2 } from './math.js';
-import { heightAt, isWater } from './height.js';
+import { isWater } from './height.js';
+import { mapToPos, orientOnPlanet, tangentBasis, upOf, wrapTangent } from './planet.js';
 
+const _up = new THREE.Vector3();
+const _wish = new THREE.Vector3();
 
 export function createCombat(scene, mats) {
   const shadows = [];
@@ -10,7 +13,7 @@ export function createCombat(scene, mats) {
   const group = new THREE.Group();
   scene.add(group);
 
-  function spawnShadow(x, z) {
+  function spawnShadow(mx, mz) {
     const g = new THREE.Group();
     const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.16, 0.9, 3, 6), mats.shadow);
     body.position.y = 0.7;
@@ -22,18 +25,11 @@ export function createCombat(scene, mats) {
     const eR = eL.clone();
     eR.position.x = 0.06;
     g.add(body, head, eL, eR);
-    const y = heightAt(x, z);
-    g.position.set(x, y, z);
+    const pos = mapToPos(mx, mz);
+    g.position.copy(pos);
+    orientOnPlanet(g, upOf(pos), 0);
     group.add(g);
-    shadows.push({
-      mesh: g,
-      x,
-      z,
-      y,
-      hp: 2,
-      hurt: 0,
-      hitCd: 0,
-    });
+    shadows.push({ mesh: g, mx, mz, pos: pos.clone(), hp: 2, hurt: 0, hitCd: 0 });
   }
 
   const spots = [];
@@ -54,22 +50,24 @@ export function createCombat(scene, mats) {
   spots.push({ x: POI.hollow.x + 2, z: POI.hollow.z - 7 });
   for (const s of spots) spawnShadow(s.x, s.z);
 
-  function fire(from, yaw) {
+  function fire(pawn) {
     const mesh = new THREE.Mesh(new THREE.OctahedronGeometry(0.11, 0), mats.glowGold);
-    const dirx = Math.sin(yaw);
-    const dirz = Math.cos(yaw);
-    mesh.position.set(from.x + dirx * 0.8, from.y + 1.35, from.z + dirz * 0.8);
+    upOf(pawn.pos, _up);
+    const { east, north } = tangentBasis(_up);
+    const fx = north.clone().multiplyScalar(Math.cos(pawn.yaw)).addScaledVector(east, Math.sin(pawn.yaw));
+    const pos = pawn.pos.clone().addScaledVector(_up, 1.35).addScaledVector(fx, 0.8);
+    mesh.position.copy(pos);
     group.add(mesh);
-    bolts.push({ mesh, x: mesh.position.x, y: mesh.position.y, z: mesh.position.z, vx: dirx * 22, vz: dirz * 22, life: 1.15 });
+    const vel = fx.multiplyScalar(22);
+    bolts.push({ mesh, pos, vel, life: 1.15 });
   }
 
   function tick(dt, pawn, onHitPlayer) {
     for (let i = bolts.length - 1; i >= 0; i--) {
       const b = bolts[i];
       b.life -= dt;
-      b.x += b.vx * dt;
-      b.z += b.vz * dt;
-      b.mesh.position.set(b.x, b.y, b.z);
+      b.pos.addScaledVector(b.vel, dt);
+      b.mesh.position.copy(b.pos);
       b.mesh.rotation.y += dt * 10;
       if (b.life <= 0) {
         group.remove(b.mesh);
@@ -78,8 +76,7 @@ export function createCombat(scene, mats) {
       }
       for (const s of shadows) {
         if (s.hp <= 0) continue;
-        const d = Math.hypot(s.x - b.x, s.z - b.z);
-        if (d < 1.05) {
+        if (b.pos.distanceTo(s.mesh.position) < 1.1) {
           s.hp -= 1;
           s.hurt = 0.2;
           group.remove(b.mesh);
@@ -99,30 +96,28 @@ export function createCombat(scene, mats) {
         if (s.deadAt <= 0) {
           s.hp = 2;
           s.mesh.visible = true;
-          const a = Math.random() * Math.PI * 2;
-          s.x = pawn.x + Math.cos(a) * 48;
-          s.z = pawn.z + Math.sin(a) * 48;
-          if (isWater(s.x, s.z)) {
-            s.x = pawn.x + 40;
-            s.z = pawn.z - 40;
-          }
+          s.mx = pawn.mx + (Math.random() - 0.5) * 70;
+          s.mz = pawn.mz + (Math.random() - 0.5) * 70;
         }
         continue;
       }
       s.hurt = Math.max(0, s.hurt - dt);
       s.hitCd = Math.max(0, s.hitCd - dt);
-      const dx = pawn.x - s.x;
-      const dz = pawn.z - s.z;
+      const dx = pawn.mx - s.mx;
+      const dz = pawn.mz - s.mz;
       const d = Math.hypot(dx, dz);
       if (d < 42 && d > 0.2) {
-        const sp = 2.35;
-        s.x += (dx / d) * sp * dt;
-        s.z += (dz / d) * sp * dt;
+        s.mx += (dx / d) * 2.35 * dt;
+        s.mz += (dz / d) * 2.35 * dt;
       }
-      s.y = heightAt(s.x, s.z);
-      s.mesh.position.set(s.x, s.y, s.z);
-      s.mesh.lookAt(pawn.x, s.y, pawn.z);
-      s.mesh.rotation.y += Math.PI;
+      const pos = mapToPos(s.mx, s.mz);
+      s.mesh.position.copy(pos);
+      upOf(pos, _up);
+      _wish.copy(pawn.pos).sub(pos);
+      wrapTangent(_wish, _up);
+      const { east, north } = tangentBasis(_up);
+      const face = Math.atan2(_wish.dot(east), _wish.dot(north));
+      orientOnPlanet(s.mesh, _up, face);
       s.mesh.scale.setScalar(1 + s.hurt * 0.4);
       if (d < 1.05 && s.hitCd <= 0) {
         s.hitCd = 0.9;

@@ -1,11 +1,12 @@
 import { FEEL } from './config.js';
+import { mapToPos, PLANET_R, upOf } from './planet.js';
 
 const _near = [];
 
 export function createObstacles() {
   const list = [];
   const grid = new Map();
-  const cell = 8;
+  const cell = 10;
   const inv = 1 / cell;
 
   function key(ix, iz) {
@@ -13,15 +14,16 @@ export function createObstacles() {
   }
 
   function add(o) {
+    if (!o.pos) o.pos = mapToPos(o.mx, o.mz);
+    if (!o.up) o.up = upOf(o.pos);
     list.push(o);
-    const r = o.r || Math.max(o.hx || 0, o.hz || 0) + 0.2;
-    const x0 = Math.floor((o.x - r) * inv);
-    const x1 = Math.floor((o.x + r) * inv);
-    const z0 = Math.floor((o.z - r) * inv);
-    const z1 = Math.floor((o.z + r) * inv);
-    for (let ix = x0; ix <= x1; ix++) {
-      for (let iz = z0; iz <= z1; iz++) {
-        const k = key(ix, iz);
+    const r = (o.r || Math.max(o.hx || 0, o.hz || 0)) + 0.4;
+    const ix = Math.floor(o.mx * inv);
+    const iz = Math.floor(o.mz * inv);
+    const span = Math.max(1, Math.ceil(r * inv));
+    for (let x = ix - span; x <= ix + span; x++) {
+      for (let z = iz - span; z <= iz + span; z++) {
+        const k = key(x, z);
         let b = grid.get(k);
         if (!b) {
           b = [];
@@ -33,11 +35,11 @@ export function createObstacles() {
     return o;
   }
 
-  function nearby(x, z, range = 6, out = _near) {
+  function nearby(mx, mz, range = 7, out = _near) {
     out.length = 0;
     const n = Math.max(1, Math.ceil(range * inv));
-    const cx = Math.floor(x * inv);
-    const cz = Math.floor(z * inv);
+    const cx = Math.floor(mx * inv);
+    const cz = Math.floor(mz * inv);
     const seen = new Set();
     for (let ix = cx - n; ix <= cx + n; ix++) {
       for (let iz = cz - n; iz <= cz + n; iz++) {
@@ -54,144 +56,144 @@ export function createObstacles() {
     return out;
   }
 
-  function cyl(x, z, y0, y1, r, kind = 'cyl') {
-    return add({ kind, x, z, y0, y1, r });
+  function cyl(mx, mz, y0, y1, r, kind = 'cyl') {
+    return add({ kind, mx, mz, r, h: Math.max(0.5, y1 - y0) });
   }
 
-  function box(x, z, y0, y1, hx, hz, rot = 0, kind = 'box') {
-    return add({ kind, x, z, y0, y1, hx, hz, rot, c: Math.cos(rot), s: Math.sin(rot) });
+  function box(mx, mz, y0, y1, hx, hz, rot = 0, kind = 'box') {
+    const pos = mapToPos(mx, mz);
+    const up = upOf(pos);
+    return add({
+      kind,
+      mx,
+      mz,
+      pos,
+      up,
+      hx,
+      hz,
+      h: Math.max(0.5, y1 - y0),
+      rot,
+      c: Math.cos(rot),
+      s: Math.sin(rot),
+    });
   }
 
-  function platform(x, z, y, hx, hz, rot = 0) {
-    return add({ kind: 'plat', x, z, y0: y, y1: y + 0.35, y, hx, hz, rot, c: Math.cos(rot), s: Math.sin(rot) });
+  function platform(mx, mz, y, hx, hz, rot = 0) {
+    return add({
+      kind: 'plat',
+      mx,
+      mz,
+      hx,
+      hz,
+      h: 0.4,
+      rot,
+      c: Math.cos(rot),
+      s: Math.sin(rot),
+      ghost: true,
+    });
   }
 
   return { list, add, nearby, cyl, box, platform };
 }
 
-function localXZ(o, x, z) {
-  const dx = x - o.x;
-  const dz = z - o.z;
-  if (!o.s) return { lx: dx, lz: dz };
-  return { lx: dx * o.c + dz * o.s, lz: -dx * o.s + dz * o.c };
+function radialAlong(p, o) {
+  const dx = p.pos.x - o.pos.x;
+  const dy = p.pos.y - o.pos.y;
+  const dz = p.pos.z - o.pos.z;
+  return dx * o.up.x + dy * o.up.y + dz * o.up.z;
 }
 
 export function collidePlayer(p, obstacles) {
-  const list = obstacles.nearby(p.x, p.z, 7);
+  if (!p.pos) return;
+  const list = obstacles.nearby(p.mx, p.mz, 8);
   const rad = FEEL.radius;
-  const yMid = p.y + FEEL.height * 0.45;
-  let gx = p.x;
-  let gz = p.z;
+  const along0 = 0.2;
 
   for (let i = 0; i < list.length; i++) {
     const o = list[i];
-    if (o.kind === 'plat' || o.ghost) continue;
-    if (yMid < o.y0 - 0.15 || p.y > o.y1 + 0.12) continue;
+    if (!o.pos || o.kind === 'plat' || o.ghost) continue;
+    const along = radialAlong(p, o);
+    if (along < -0.15 || along > o.h + 0.2) continue;
 
-    if (o.kind === 'cyl' || o.r) {
-      let dx = p.x - o.x;
-      let dz = p.z - o.z;
-      let d = Math.hypot(dx, dz);
-      const min = (o.r || 0) + rad;
-      if (d < 1e-5) {
-        dx = 1;
-        dz = 0;
-        d = 1;
-      }
-      if (d < min) {
+    if (o.r && !o.hx) {
+      const dx = p.pos.x - o.pos.x;
+      const dy = p.pos.y - o.pos.y;
+      const dz = p.pos.z - o.pos.z;
+      const rx = dx - o.up.x * along;
+      const ry = dy - o.up.y * along;
+      const rz = dz - o.up.z * along;
+      const d = Math.hypot(rx, ry, rz);
+      const min = o.r + rad;
+      if (d < min && d > 1e-5) {
         const push = Math.min(min - d, FEEL.maxPush);
         const s = push / d;
-        p.x += dx * s;
-        p.z += dz * s;
-        const vn = p.vx * (dx / d) + p.vz * (dz / d);
+        p.pos.x += rx * s;
+        p.pos.y += ry * s;
+        p.pos.z += rz * s;
+        const vn = p.vel.x * (rx / d) + p.vel.y * (ry / d) + p.vel.z * (rz / d);
         if (vn < 0) {
-          p.vx -= (dx / d) * vn;
-          p.vz -= (dz / d) * vn;
+          p.vel.x -= (rx / d) * vn;
+          p.vel.y -= (ry / d) * vn;
+          p.vel.z -= (rz / d) * vn;
         }
       }
       continue;
     }
 
-    const { lx, lz } = localXZ(o, p.x, p.z);
-    const hx = o.hx + rad;
-    const hz = o.hz + rad;
-    if (Math.abs(lx) >= hx || Math.abs(lz) >= hz) continue;
-    const ox = hx - Math.abs(lx);
-    const oz = hz - Math.abs(lz);
-    let nlx = 0;
-    let nlz = 0;
-    if (ox < oz) {
-      const mag = Math.min(ox, FEEL.maxPush);
-      nlx = lx >= 0 ? mag : -mag;
-    } else {
-      const mag = Math.min(oz, FEEL.maxPush);
-      nlz = lz >= 0 ? mag : -mag;
+    if (o.hx != null) {
+      const dx = p.pos.x - o.pos.x;
+      const dy = p.pos.y - o.pos.y;
+      const dz = p.pos.z - o.pos.z;
+      const rx = dx - o.up.x * along;
+      const rz = dz - o.up.z * along;
+      const { east, north } = {
+        east: { x: o.c ?? 1, z: o.s ?? 0 },
+        north: { x: -(o.s ?? 0), z: o.c ?? 1 },
+      };
+      const side = rx * east.x + rz * east.z;
+      const fwd = rx * north.x + rz * north.z;
+      const hw = o.hx + rad;
+      const hd = o.hz + rad;
+      if (Math.abs(side) >= hw || Math.abs(fwd) >= hd) continue;
+      const ox = hw - Math.abs(side);
+      const oz = hd - Math.abs(fwd);
+      if (ox < oz) {
+        const mag = Math.min(ox, FEEL.maxPush) * (side >= 0 ? 1 : -1);
+        p.pos.x += east.x * mag;
+        p.pos.z += east.z * mag;
+      } else {
+        const mag = Math.min(oz, FEEL.maxPush) * (fwd >= 0 ? 1 : -1);
+        p.pos.x += north.x * mag;
+        p.pos.z += north.z * mag;
+      }
     }
-    const wx = nlx * (o.c || 1) - nlz * (o.s || 0);
-    const wz = nlx * (o.s || 0) + nlz * (o.c || 1);
-    p.x += wx;
-    p.z += wz;
-    const nlen = Math.hypot(wx, wz) || 1;
-    const nx = wx / nlen;
-    const nz = wz / nlen;
-    const vn = p.vx * nx + p.vz * nz;
-    if (vn < 0) {
-      p.vx -= nx * vn;
-      p.vz -= nz * vn;
-    }
-  }
-
-  const push = Math.hypot(p.x - gx, p.z - gz);
-  if (push > 1.05) {
-    const s = 1.05 / push;
-    p.x = gx + (p.x - gx) * s;
-    p.z = gz + (p.z - gz) * s;
   }
 }
 
-export function platformY(p, obstacles, ground) {
-  const list = obstacles.nearby(p.x, p.z, 5);
-  let y = ground;
-  for (let i = 0; i < list.length; i++) {
-    const o = list[i];
-    if (o.kind !== 'plat') continue;
-    const { lx, lz } = localXZ(o, p.x, p.z);
-    if (Math.abs(lx) > o.hx || Math.abs(lz) > o.hz) continue;
-    if (p.y >= o.y - 0.42 && p.y <= o.y + 0.9 && p.vy <= 1.2) {
-      if (o.y > y) y = o.y;
-    }
-  }
-  return y;
-}
-
-export function camHit(ox, oy, oz, dx, dy, dz, dist, obstacles) {
-  const steps = 14;
+export function camHit(ox, oy, oz, dx, dy, dz, dist, obstacles, mx, mz) {
+  const steps = 12;
   let hit = dist;
   for (let i = 1; i <= steps; i++) {
     const t = (i / steps) * dist;
     const x = ox + dx * t;
     const y = oy + dy * t;
     const z = oz + dz * t;
-    const list = obstacles.nearby(x, z, 6);
+    const list = obstacles.nearby(mx, mz, 8);
     for (let j = 0; j < list.length; j++) {
       const o = list[j];
-      if (o.kind === 'plat' || o.ghost) continue;
-      if (y < o.y0 - 0.4 || y > o.y1 + 1.2) continue;
-      const pad =
-        o.kind === 'house' || o.kind === 'manor' || o.kind === 'kirk'
-          ? 0.72
-          : o.kind === 'tree'
-            ? 0.28
-            : 0.42;
-      if (o.r) {
-        const d = Math.hypot(x - o.x, z - o.z);
-        if (d < o.r + pad) hit = Math.min(hit, Math.max(FEEL.camMinDist, t - 0.45));
-      } else {
-        const loc = localXZ(o, x, z);
-        if (Math.abs(loc.lx) < o.hx + pad && Math.abs(loc.lz) < o.hz + pad) {
-          hit = Math.min(hit, Math.max(FEEL.camMinDist, t - 0.45));
-        }
-      }
+      if (!o.pos || o.kind === 'plat' || o.ghost) continue;
+      const px = x - o.pos.x;
+      const py = y - o.pos.y;
+      const pz = z - o.pos.z;
+      const along = px * o.up.x + py * o.up.y + pz * o.up.z;
+      if (along < -0.4 || along > (o.h || 2) + 1.2) continue;
+      const pad = o.kind === 'house' || o.kind === 'manor' || o.kind === 'kirk' ? 0.75 : o.kind === 'tree' ? 0.3 : 0.45;
+      const rx = px - o.up.x * along;
+      const ry = py - o.up.y * along;
+      const rz = pz - o.up.z * along;
+      const d = Math.hypot(rx, ry, rz);
+      const rad = (o.r || Math.max(o.hx || 0, o.hz || 0)) + pad;
+      if (d < rad) hit = Math.min(hit, Math.max(FEEL.camMinDist, t - 0.4));
     }
   }
   return hit;
